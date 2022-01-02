@@ -1,0 +1,25 @@
+{
+  "name": "@aero/shared",
+  "version": "0.1.0",
+  "description": "Shared dependencies for all the projects contained within Aero",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mathiashsteffensen/aero/shared"
+  },
+  "author": "Mathias H Steffensen",
+  "license": "MIT",
+  "dependencies": {
+    "@types/ejs": "^3.1.0",
+    "@types/jake": "^0.0.33",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.12",
+    "@typescript-eslint/eslint-plugin": "^5.6.0",
+    "@typescript-eslint/parser": "^5.6.0",
+    "eslint": "^8.4.1",
+    "eslint-plugin-tsdoc": "^0.2.14",
+    "mocha": "^9.1.3",
+    "ts-node": "^10.4.0",
+    "typedoc": "^0.22.10",
+    "typescript": "^4.5.3"
+  }
+}

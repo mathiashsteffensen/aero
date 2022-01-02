@@ -1,0 +1,9 @@
+# Node modules
+node_modules
+**/yarn-error.log
+
+# JetBrains IDE folder
+.idea
+
+# Compiled dist contents
+**/dist/*

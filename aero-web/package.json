@@ -1,0 +1,22 @@
+{
+  "name": "@aero/aero-web",
+  "version": "1.0.0",
+  "description": "HTTP framework for Aero",
+  "main": "dist/js/Aero.js",
+  "types": "dist/typings/Aero.d.ts",
+  "repository": "https://github.com/mathiashsteffensen/aero/aero",
+  "author": "Mathias H Steffensen",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "cuid": "^2.1.8",
+    "fastify": "^3.25.1",
+    "fastify-static": "^4.5.0",
+    "pino": "^7.6.0"
+  },
+  "devDependencies": {
+    "@aero/shared": "../shared",
+    "pino-pretty": "^7.3.0",
+    "typedoc-plugin-rename-defaults": "^0.4.0"
+  }
+}

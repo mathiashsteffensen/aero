@@ -1,0 +1,5 @@
+export type HookType = "validation"
+  | "save"
+  | "create"
+  | "update"
+  | "destroy"
