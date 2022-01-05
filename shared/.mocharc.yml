@@ -8,6 +8,7 @@ node-option:
 spec:
   - test/**/*.test.ts
 ui: bdd
+bail: true
 watch-ignore:
   - node_modules
   - dist

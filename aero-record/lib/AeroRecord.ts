@@ -1,13 +1,15 @@
 import pino from "pino"
 
-import * as Errors from "./Errors"
 import Base from "./Base"
-import Query from "./query"
 import Connection from "./Connection"
+import * as Decorators from "./decorators"
+import * as Errors from "./Errors"
+import Query from "./Query"
 
 export default abstract class AeroRecord {
-	static Errors = Errors
 	static Base = Base
+	static Decorators = Decorators
+	static Errors = Errors
 	static Query = Query
 
 	static connection: Connection

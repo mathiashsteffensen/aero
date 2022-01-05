@@ -1,53 +1,70 @@
-import { fastify, FastifyInstance } from "fastify"
-import fastifyStatic from "fastify-static"
-import cuid from "cuid"
+import { BaseLogger } from "pino"
+
+import AeroWeb, { Server } from "@aero/aero-web"
 
 import Config from "./Config"
 import ENV from "./ENV"
-import Controllers from "./Controllers"
 import Aero from "./Aero"
 import Templates from "./Templates"
 import AssetPipeline, { IAssetPipeline } from "./AssetPipeline"
 import ViewHelpers from "./ViewHelpers"
+import Root from "./Root"
 
-export default abstract class Application {
+
+export interface IApplication {
+	configure: (config: Config) => void
+	initialize: (aero: typeof Aero) => void
+	start: (version: string) => void
+}
+
+export default abstract class Application implements IApplication {
+	config: Config
 	env = new ENV()
+	root: Root
+	logger: BaseLogger
 	templates = new Templates()
 	assetPipeline: IAssetPipeline = new AssetPipeline()
-	controllers = new Controllers()
+	controllers = new AeroWeb.Controllers()
 	viewHelpers!: ViewHelpers
-	fastify: FastifyInstance
+	server: Server
 
 	protected constructor(aero: typeof Aero) {
-		this.fastify = fastify({
-			logger: aero.logger,
-			genReqId: cuid,
-		})
+		this.config = aero.config
+		this.root = aero.root
+		this.logger = aero.logger
 
-		this.fastify.register(fastifyStatic, {
-			root: aero.root.join("public"),
-			prefix: "/public/",
+		this.server = new AeroWeb.Server({
+			logger: this.logger,
+			staticDir: this.root.join("public"),
 		})
 	}
 
-	configure(config: Config) {
-		config.loadDefaults()
-	}
+	/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
+	configure(_config: Config) {}
+	/* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
 
 	async initialize(aero: typeof Aero) {
-		await this.controllers.load(aero)
-		this.templates.load(aero)
+		await this.controllers.load(
+			this.root.join("app/controllers"),
+			this.logger.fatal,
+		)
+
+		this.templates.load(
+			this.root.join(this.config.viewDir, "pages"),
+			this.root.join(this.config.viewDir, "layouts"),
+		)
+
 		this.assetPipeline.compile(aero).then(() => {
-			this.fastify.log.info("Frontend assets compiled ...")
+			this.logger.info("Frontend assets compiled ...")
 			this.viewHelpers = new ViewHelpers(this.assetPipeline.assetManifest)
 		})
 	}
 
 	async start(version: string) {
-		this.fastify.log.info("Starting Aero application")
-		this.fastify.log.info("Environment: %s", this.env.toString())
-		this.fastify.log.info("Version: %s", version)
+		this.logger.info("Starting Aero application")
+		this.logger.info("Environment: %s", this.env.toString())
+		this.logger.info("Version: %s", version)
 
-		return this.fastify.listen({ port: 8080, host: "0.0.0.0" })
+		return this.server.start()
 	}
 }

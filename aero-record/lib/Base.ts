@@ -1,20 +1,30 @@
+import { Knex } from "knex"
 import pluralize from "pluralize"
 
-import Hooks from "./Hooks"
-import { ConstructorArgs, HookType } from "./types"
 import AeroRecord from "./AeroRecord"
+import BasicObject from "./BasicObject"
+import Hooks from "./Hooks"
+import { ConstructorArgs, HookType, ModelAttributes, QueryResult } from "./types"
+import Changes from "./Changes"
 
+const privateAttributes = {
+	isPersisted: Symbol("isPersisted"),
+	changes: Symbol("changes"),
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * AeroRecord.Base is the class all models in your application should inherit from
  *
  * @public
  */
-export default class Base<TRecord> extends Object {
+export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
+
 	/**
 	 * The table name used when performing queries with this model.
 	 *
 	 * @remarks
-	 * By default, the model name is converted to snake_case.
+	 * By default, the model name is converted to snake_case and pluralized.
 	 * Can be customized by setting a static variable on the model
 	 *
 	 * @example
@@ -30,7 +40,7 @@ export default class Base<TRecord> extends Object {
 		return pluralize.plural(snakeCased)
 	}
 
-	protected static hooks = new Hooks()
+	static hooks = new Hooks()
 
 	static get before() {
 		return this.hooks.before
@@ -52,6 +62,40 @@ export default class Base<TRecord> extends Object {
 	}
 
 	/**
+	 * Instantiate a new static query for this model
+	 *
+	 * @internal
+	 */
+	static query<TRecord extends Base<TRecord>>() {
+		return AeroRecord
+			.connection
+			.knex<TRecord>(this.tableName)
+	}
+
+	static async findBy<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord>): Promise<QueryResult<TRecord>> {
+		const row = await this.query<TRecord>().where(params).first()
+		if (!row) return undefined
+
+		const record = new this() as TRecord
+
+		record.fromRow(row as Awaited<Knex.ResolveTableType<TRecord>>)
+
+		return record
+	}
+
+	fromRow(row: Awaited<Knex.ResolveTableType<TRecord>>) {
+		this.fromObject(row as Record<string, unknown>)
+
+		this.__set__(privateAttributes.isPersisted, true)
+	}
+
+	fromObject(obj: Record<string, unknown>) {
+		for (const key in obj) {
+			this.__set__(key, obj[key])
+		}
+	}
+
+	/**
 	 * Saves the record to the database
 	 */
 	async save() {
@@ -67,7 +111,7 @@ export default class Base<TRecord> extends Object {
 			await this.query.insert(this)
 
 			// If save succeeds, mark record as persisted
-			this.#isPersisted = true
+			this.__set__(privateAttributes.isPersisted, true)
 
 			// Call after create hooks
 			await this.callHooks("after", "create")
@@ -84,40 +128,47 @@ export default class Base<TRecord> extends Object {
 
 		// Call after save hooks
 		await this.callHooks("after", "save")
+
+		// Reset changes
+		this.__set__(privateAttributes.changes, new Changes(this as unknown as TRecord))
+	}
+
+	get changes() {
+		return this.__send__(privateAttributes.changes) as Changes<TRecord>
+	}
+
+	attributeChanged(attribute: ModelAttributes<TRecord>) {
+		return this.changes.includes(attribute)
 	}
 
 	/**
 	 * Whether the instance has been saved to the database yet
 	 */
-	#isPersisted = false
 	get isPersisted() {
-		return this.#isPersisted
+		return this.__send__(privateAttributes.isPersisted) as boolean
 	}
 
 	/**
 	 * Opposite of isPersisted
 	 */
 	get isNewRecord() {
-		return !this.#isPersisted
+		return !this.__send__(privateAttributes.isPersisted) as boolean
 	}
 
 	get callHooks(): (timing: "before" | "after", event: HookType) => void {
-		return (this.constructor as typeof Base).hooks.callHooks<this>(this)
+		return (this.constructor as typeof Base).hooks.callHooks<Base<any>>(this)
 	}
 
-	__send__(attribute: string | symbol | number) {
-		return (this as Record<string | symbol | number, unknown>)[attribute] as unknown
-	}
+	static new<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord> = {}) {
+		let record = new this() as TRecord
 
-	async __send_func__(attribute: string | symbol | number) {
-		return (this.__send__(attribute) as () => unknown | Promise<unknown>).call(this)
-	}
+		record.__set__(privateAttributes.changes, new Changes(record))
+		record.__set__(privateAttributes.isPersisted, false)
 
-	attributeIsMethod(attribute: string | symbol | number) {
-		return typeof this.__send__(attribute) == "function"
-	}
+		record = Changes.proxifyModel(record)
 
-	constructor(params: ConstructorArgs<TRecord> = undefined) {
-		super(params)
+		record.fromObject(params)
+
+		return record
 	}
 }

@@ -2,6 +2,7 @@ import { HookAction, HookOptions, HookState, HookType, ModelMethods } from "./ty
 import * as Errors from "./Errors"
 import Base from "./Base"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Provides lifecycle hook functionality to AeroRecord models
  */
@@ -9,7 +10,7 @@ export default class Hooks {
 	/**
    * @internal
    */
-	private state: HookState<string | number | symbol> = {
+	private state: HookState<Record<string | number | symbol, unknown>> = {
 		before: {
 			validation: [], // beforeValidation
 			save: [], // beforeSave
@@ -39,7 +40,7 @@ export default class Hooks {
   >(
 		timing: "before" | "after",
 		event: HookType,
-		methods: keyof TRecord | Array<keyof TRecord>,
+		methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>> | ((record: TRecord) => void) | ((record: TRecord) => Promise<void>),
 		options: HookOptions<keyof TRecord> = {},
 	) {
 		if (!Object.keys(this.state[timing]).includes(event)) {
@@ -54,7 +55,7 @@ export default class Hooks {
 				}
 			}))
 		} else {
-			this.state[timing][event].push({
+			(this.state as unknown as HookState<TRecord>)[timing][event].push({
 				action: methods,
 				options: options,
 			})
@@ -68,8 +69,12 @@ export default class Hooks {
    * @param methods - the methods to call when this event occurs
    * @param options - options for the hooks
    */
-	before = <TRecord extends Base<TRecord>>(event: HookType, methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>>, options: HookOptions<keyof TRecord> = {}) => {
-		this.registerHook("before", event, methods, options)
+	before = <TRecord extends Base<TRecord>>(
+		event: HookType,
+		methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>> | ((record: TRecord) => void) | ((record: TRecord) => Promise<void>),
+		options: HookOptions<keyof TRecord> = {},
+	) => {
+		this.registerHook<TRecord>("before", event, methods, options)
 	}
 
 	/**
@@ -79,8 +84,12 @@ export default class Hooks {
    * @param methods - the methods to call when this event occurs
    * @param options - options for the hooks
    */
-	after = <TRecord extends Base<TRecord>>(event: HookType, methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>>, options: HookOptions<keyof TRecord> = {}) => {
-		this.registerHook("after", event, methods, options)
+	after = <TRecord extends Base<TRecord>>(
+		event: HookType,
+		methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>> | ((record: TRecord) => void) | ((record: TRecord) => Promise<void>),
+		options: HookOptions<keyof TRecord> = {},
+	) => {
+		this.registerHook<TRecord>("after", event, methods, options)
 	}
 
 	/**
@@ -88,7 +97,7 @@ export default class Hooks {
    *
    * @internal
    */
-	private async shouldCallHook<TRecord extends Base<TRecord>>(model: TRecord, hook: HookAction<string | number | symbol>) {
+	private async shouldCallHook<TRecord extends Base<any>>(model: TRecord, hook: HookAction<TRecord>) {
 		let shouldCallHook = true
 
 		if (hook.options.if) {
@@ -113,12 +122,22 @@ export default class Hooks {
 	/**
    * @internal
    */
-	callHooks<TRecord extends Base<TRecord>>(model: TRecord) {
+	callHooks<TRecord extends Base<any>>(model: TRecord) {
 		return async (timing: "before" | "after", event: HookType) => {
 			for (const hook of this.state[timing][event]) {
+				const shouldCallHook = await this.shouldCallHook<TRecord>(model, hook as unknown as HookAction<TRecord>)
 
-				if (model.attributeIsMethod(hook.action) && await this.shouldCallHook<TRecord>(model, hook)) {
-					await model.__send_func__(hook.action)
+				if (!shouldCallHook) {
+					return
+				}
+
+				if (typeof hook.action === "function") {
+					await hook.action(model as Record<string, unknown>)
+					return
+				}
+
+				if (model.attributeIsMethod(hook.action as ModelMethods<TRecord>)) {
+					await model.__send_func__(hook.action as ModelMethods<TRecord>)
 				}
 			}
 		}

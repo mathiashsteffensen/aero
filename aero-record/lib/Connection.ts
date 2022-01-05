@@ -25,11 +25,12 @@ export default class Connection {
 	 * @param connectionName - name of the connection to establish
 	 */
 	establishConnection(connectionName: string) {
-		try {
-			if (this.config[connectionName] == undefined) {
-				throw new Errors.ConnectionError(`No configuration found for connection named ${connectionName}`)
-			}
 
+		if (this.config[connectionName] == undefined) {
+			throw new Errors.ConnectionError(`No configuration found for connection named ${connectionName}`)
+		}
+
+		try {
 			this.knex = knex(this.config[connectionName] as Knex.Config)
 
 			this.knex.on("query", AeroRecord.logger.debug)

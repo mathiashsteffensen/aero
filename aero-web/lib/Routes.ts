@@ -1,15 +1,25 @@
-import Application from "./Application"
-import { RouteOptions, RouteSpecification, RouteState } from "./types"
 import Controller from "./Controller"
 import RouteHelpers from "./RouteHelpers"
+import Controllers from "./Controllers"
+import Server from "./Server"
+
+import { RouteHandler, RouteSpecification, RouteState } from "./types"
+import RouteBuilder from "./RouteBuilder"
 
 export default class Routes {
 	/**
    * @internal
    */
-	#application: Application
-	constructor(application: Application) {
-		this.#application = application
+	#controllers: Controllers
+
+	/**
+	 * @internal
+	 */
+	#server: Server
+
+	constructor(controllers: Controllers, server: Server) {
+		this.#controllers = controllers
+		this.#server = server
 	}
 
 	/**
@@ -55,8 +65,8 @@ export default class Routes {
 	 * })
 	 * ```
 	 */
-	draw(callback: (r: Routes) => void) {
-		callback(this)
+	draw(callback: (r: RouteBuilder) => void) {
+		callback(new RouteBuilder(this))
 	}
 
 	/**
@@ -70,8 +80,36 @@ export default class Routes {
 				controller: spec.split("#")[0] || "",
 				action: spec.split("#")[1] || "",
 			}
+		} else if (typeof spec === "function") {
+			return {
+				controller: "",
+				action: "",
+			}
 		} else {
 			return spec
+		}
+	}
+
+	private specToHandler(spec: RouteSpecification): RouteHandler {
+		if (typeof spec === "function") {
+			return spec
+		} else {
+			this.controllerCheck(spec)
+
+			const { controller, action } = this.specToControllerAndAction(spec)
+
+			return async (req, res) => {
+				const controllerInstance = this.#controllers.new(controller, req, res)
+				const actionResponse = await (controllerInstance[action as keyof Controller] as unknown as () => Promise<unknown>)()
+
+				// If the action didn't provide a response,
+				// try to render the template corresponding to the controller and action name
+				if (!actionResponse) {
+					return controllerInstance.render(action)
+				}
+
+				return actionResponse
+			}
 		}
 	}
 
@@ -83,51 +121,22 @@ export default class Routes {
 	private controllerCheck(spec: RouteSpecification) {
 		const { controller } = this.specToControllerAndAction(spec)
 
-		this.#application.controllers.check(controller)
+		this.#controllers.check(controller)
 	}
 
-	private addRoute(route: RouteState[0]) {
-		this.controllerCheck(route.spec)
+	addRoute(route: RouteState[0], scope: string) {
+		route.path = scope.endsWith("/") ? scope : `${scope}/${route.path}`
 
-		const { controller, action } = this.specToControllerAndAction(route.spec)
-
-		this.#application.fastify.route(
+		this.#server.fastify.route(
 			{
 				method: route.method,
 				url: route.path,
-				handler: async (req, res) => {
-					const controllerInstance = this.#application.controllers.new(controller, this.#application.viewHelpers, this.make, req, res)
-					const actionResponse = await (controllerInstance[action as keyof Controller] as unknown as () => Promise<unknown>)()
-
-					// If the action didn't provide a response,
-					// try to render the template corresponding to the controller and action name
-					if (!actionResponse) {
-						return controllerInstance.render(action)
-					}
-
-					return actionResponse
-				},
+				handler: this.specToHandler(route.spec),
 			},
 		)
 
 		this.#state.push(route)
 
 		this.make = new RouteHelpers(this.#state)
-	}
-
-	/**
-	 * Defines a GET route
-	 *
-	 * @param path - the path of the GET route
-	 * @param spec - the route specification, controller/action pair
-	 * @param options - options for this route
-	 */
-	get(path: string, spec: RouteSpecification, options: RouteOptions = {}) {
-		this.addRoute({
-			method: "GET",
-			path,
-			spec,
-			options,
-		})
 	}
 }

@@ -10,6 +10,7 @@
   "private": false,
   "dependencies": {
     "@aero/aero-record": "../aero-record/",
+    "@aero/aero-web": "../aero-web/",
     "cuid": "^2.1.8",
     "ejs": "^3.1.6",
     "esbuild": "^0.14.7",

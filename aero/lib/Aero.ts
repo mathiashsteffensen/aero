@@ -1,13 +1,17 @@
+// External dependencies
 import * as fs from "fs"
 import * as path from "path"
-import pino from "pino"
 
+// Internal dependencies
+import AeroWeb from "@aero/aero-web"
+import Routes from "@aero/aero-web/dist/typings/Routes"
+
+// Load the library
 import Application from "./Application"
 import Root from "./Root"
 import Config from "./Config"
-import Controller from "./Controller"
-import Routes from "./Routes"
 import ENV from "./ENV"
+import Logger from "./Logger"
 
 /**
  * abstract class defining a full-fledged web application
@@ -24,18 +28,6 @@ export default abstract class Aero {
 	 * ```
 	 */
 	static Application = Application
-
-	/**
-	 * Exports the Controller class so that it can be imported from the core Aero module.
-	 *
-	 * @example
-	 * ```
-	 * import Aero from "@aero/aero";
-	 *
-	 * export default class BaseController extends Aero.Controller {}
-	 * ```
-	 */
-	static Controller = Controller
 
 	/**
 	 * Your application instance, is undefined until `Aero.initialize` has been called
@@ -60,14 +52,7 @@ export default abstract class Aero {
 	 * Aero.logger.info("This is an info level message")
 	 * ```
 	 */
-	static logger = pino({
-		transport: {
-			target: "pino-pretty",
-			options: {
-				colorize: true,
-			},
-		},
-	})
+	static logger = new Logger()
 
 	/**
 	 * Construct paths from the root of your application
@@ -105,13 +90,13 @@ export default abstract class Aero {
 			this.application.configure(this.config)
 			await this.application.initialize(this)
 
-			this.routes = new Routes(this.application)
+			this.routes = new AeroWeb.Routes(this.application.controllers, this.application.server)
 
-			await import(this.root.join("config/routes"))
+			await import(this.root.join(this.config.routesFile))
 
 			return this
 		} catch (e) {
-			this.logger.error("%s", e)
+			this.logger.fatal(e)
 			process.exit()
 		}
 	}
@@ -129,7 +114,7 @@ export default abstract class Aero {
 	 * Aero
 	 *   .initialize("config/Application")
 	 *   .then(Aero.start)
-	 *   .catch(Aero.logger.error)
+	 *   .catch(Aero.logger.fatal)
 	 * ```
 	 */
 	static async start(aero: typeof Aero) {

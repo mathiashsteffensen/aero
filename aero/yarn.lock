@@ -10,7 +10,18 @@
     jake "^10.8.2"
     knex "^0.95.14"
     pg "^8.7.1"
+    pino "^7.6.0"
+    pino-pretty "^7.3.0"
+    pluralize "^8.0.0"
     yaml "^1.10.2"
+
+"@aero/aero-web@../aero-web/":
+  version "1.0.0"
+  dependencies:
+    cuid "^2.1.8"
+    fastify "^3.25.1"
+    fastify-static "^4.5.0"
+    pino "^7.6.0"
 
 "@aero/shared@../shared":
   version "0.1.0"
@@ -1831,6 +1842,11 @@ pino@^7.6.0:
     safe-stable-stringify "^2.1.0"
     sonic-boom "^2.2.1"
     thread-stream "^0.13.0"
+
+pluralize@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-8.0.0.tgz#1a6fa16a38d12a1901e0320fa017051c539ce3b1"
+  integrity sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==
 
 postcss-modules-extract-imports@^3.0.0:
   version "3.0.0"

@@ -1,7 +1,9 @@
-export default class Config {
-	logLevel?: string
+import pino from "pino"
 
-	loadDefaults() {
-		this.logLevel ||= "info"
-	}
+export default class Config {
+	/// Core config
+	logLevel: pino.Level = "info"
+	routesFile = "config/routes"
+	viewDir = "app/views"
+	controllerDir = "app/controllers"
 }

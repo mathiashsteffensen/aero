@@ -1,5 +1,4 @@
 import ejs from "ejs"
-import Aero from "./Aero"
 import * as fs from "fs"
 
 /**
@@ -43,8 +42,8 @@ export default class Templates {
 	}
 
 	// viewDir is a parameter so that it can be made into a customization option easily later
-	load(aero: typeof Aero, viewDir = "app/views") {
-		this.state.pages = this.loadDir(aero.root.join(viewDir, "pages"))
-		this.state.layouts = this.loadDir(aero.root.join(viewDir, "layouts"))
+	load(pagesDir: string, layoutsDir: string) {
+		this.state.pages = this.loadDir(pagesDir)
+		this.state.layouts = this.loadDir(layoutsDir)
 	}
 }

@@ -1,10 +1,7 @@
 import * as fs from "fs"
 
-import Aero from "./Aero"
 import Controller, { ControllerConstructor } from "./Controller"
 import { FastifyReply, FastifyRequest } from "fastify"
-import ViewHelpers from "./ViewHelpers"
-import RouteHelpers from "./RouteHelpers"
 
 const toSnakeCase = (s: string) =>
 	s[0]?.toLowerCase() + s.slice(1).replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
@@ -12,6 +9,7 @@ const toSnakeCase = (s: string) =>
 export default class Controllers {
 	#state: Record<string, ControllerConstructor> = {}
 
+	// TODO: Clean up this shitty controller parsing - a couple comments wouldn't hurt
 	async loadDir(dir: string, controllerNamePrefix = "") {
 		for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
 			const absPath = `${dir}/${f.name}`
@@ -35,15 +33,44 @@ export default class Controllers {
 		}
 	}
 
-	async load(aero: typeof Aero) {
-		try {
-			await this.loadDir(aero.root.join("app/controllers"))
-		} catch(e) {
-			aero.logger.error(e)
+	/**
+	 * Automatically load controllers from a specified directory of files
+	 *
+	 * @remarks
+	 * This method loads all controller files in a specified directory and does so recursively
+	 *
+	 * @example
+	 * As used in the Aero web framework
+	 *
+	 * ```
+	 * 	await this.controllers.load(
+	 * 		aero.root.join("app/controllers"),
+	 * 		aero.logger.fatal
+	 * 	)
+	 * ```
+	 *
+	 * @param dir - directory to load
+	 * @param onError - on error callback function, the default onError function logs the error and throws it again
+	 */
+	async load(
+		dir: string,
+		onError: (e: unknown) => void = (e: unknown) => {
+			console.log(e)
 			throw e
+		},
+	) {
+		try {
+			await this.loadDir(dir)
+		} catch(e) {
+			onError(e)
 		}
 	}
 
+	/**
+	 * Checks if a controller has been loaded
+	 *
+	 * @param controllerName - the name of the controller
+	 */
 	check(controllerName: string) {
 		const controller = this.#state[controllerName]
 
@@ -52,11 +79,18 @@ export default class Controllers {
 		}
 	}
 
-	new(controllerName: string, viewHelpers: ViewHelpers, routes: RouteHelpers, req: FastifyRequest, res: FastifyReply): Controller {
+	/**
+	 * Instantiate a new Controller instance
+	 *
+	 * @param controllerName - name of the controller
+	 * @param req - the Fastify request object
+	 * @param res - the Fastify reply object
+	 */
+	new(controllerName: string, req: FastifyRequest, res: FastifyReply): Controller {
 		const controller = this.#state[controllerName]
 
 		this.check(controllerName)
 
-		return new (controller as ControllerConstructor)(controllerName, viewHelpers, routes, req, res)
+		return new (controller as ControllerConstructor)(controllerName, req, res)
 	}
 }

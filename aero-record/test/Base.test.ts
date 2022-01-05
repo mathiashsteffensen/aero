@@ -1,32 +1,11 @@
 import * as assert from "assert"
 
 import AeroRecord from "../lib/AeroRecord"
-import { ConstructorArgs, HookOptions, ModelMethods } from "../lib/types"
-import Hooks from "../lib/Hooks"
+import { ConstructorArgs, HookOptions, ModelMethods, QueryResult } from "../lib/types"
 
-class DummyModel extends AeroRecord.Base<DummyModel> {
-	id!: string
-	name?: string
-	email?: string
+import BaseDummyModel from "./BaseDummyModel"
 
-	calledSetId = 0
-	setId() {
-		this.id = "an-id"
-		this.calledSetId += 1
-	}
-
-	calledSendConfirmationEmail = 0
-	sendConfirmationEmail() {
-		return new Promise(resolve => setTimeout(() => {
-			this.calledSendConfirmationEmail += 1
-			resolve(undefined)
-		}, 20))
-	}
-
-	static reset() {
-		this.hooks = new Hooks()
-	}
-}
+class DummyModel extends BaseDummyModel<DummyModel> {}
 
 describe("Base", () => {
 	afterEach(() => {
@@ -75,17 +54,71 @@ describe("Base", () => {
 		})
 	})
 
-	describe(".constructor", () => {
+	describe(".new", () => {
 		let params: ConstructorArgs<DummyModel>
 		let dummyModel: DummyModel
 
 		beforeEach(() => {
-			dummyModel = new DummyModel(params)
+			dummyModel = DummyModel.new(params)
 		})
 
-		describe("with no params", () => {
+		context("with no params", () => {
 			it("leaves the attributes undefined", () => {
 				assert.equal(dummyModel.id, undefined)
+			})
+		})
+
+		context("with params", () => {
+			before(() => {
+				params = { id: "Hello" }
+			})
+
+			it("sets the attributes", () => {
+				assert.equal(dummyModel.id, "Hello")
+			})
+		})
+	})
+
+	describe(".findBy", () => {
+		let params: ConstructorArgs<DummyModel>
+		let result: QueryResult<DummyModel>
+
+		const doFindBy = async () => result = await DummyModel.findBy<DummyModel>(params)
+
+		beforeEach(async () => {
+			DummyModel.before<DummyModel>("create", "setId")
+		})
+
+		context("when record doesn't exist in the database", () => {
+			beforeEach(async () => {
+				params = {
+					id: (Math.random() * 2300).toString(),
+				}
+				await doFindBy()
+			})
+
+			it("returns undefined", () => {
+				assert.equal(result, undefined)
+			})
+		})
+
+		context("when record exists in the database", () => {
+			beforeEach(async () => {
+				const dummyModel = new DummyModel()
+				await dummyModel.save()
+
+				params = {
+					id: dummyModel.id,
+				}
+				await doFindBy()
+			})
+
+			it("doesn't return undefined", () => {
+				assert.notEqual(result, undefined)
+			})
+
+			it("returns the preExistingModel", () => {
+				assert.equal(result?.id, params.id)
 			})
 		})
 	})
