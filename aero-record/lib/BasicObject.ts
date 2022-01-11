@@ -20,4 +20,8 @@ export default class BasicObject extends Object {
 	clone<T extends this>() {
 		return Object.assign({}, this) as T
 	}
+
+	class<T extends typeof BasicObject>() {
+		return this.constructor as T
+	}
 }

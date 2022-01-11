@@ -1,31 +1,54 @@
 import Controller from "./Controller"
-import RouteHelpers from "./RouteHelpers"
 import Controllers from "./Controllers"
+import * as Errors from "./Errors"
+import RouteBuilder from "./RouteBuilder"
+import RouteHelpers from "./RouteHelpers"
 import Server from "./Server"
 
-import { RouteHandler, RouteSpecification, RouteState } from "./types"
-import RouteBuilder from "./RouteBuilder"
+import { RouteHandler, RouteSpecification, RouteState, ViewEngine } from "./types"
+
 
 export default class Routes {
 	/**
    * @internal
    */
-	#controllers: Controllers
+	readonly #controllers: Controllers
 
 	/**
 	 * @internal
 	 */
-	#server: Server
+	readonly #server: Server
 
-	constructor(controllers: Controllers, server: Server) {
+	/**
+	 * @internal
+	 */
+	readonly #viewEngine: ViewEngine
+
+	/**
+	 * @internal
+	 */
+	readonly #viewHelpers: Record<string, unknown>
+
+	constructor(
+		controllers: Controllers,
+		server: Server,
+		viewEngine: ViewEngine,
+		viewHelpers: Record<string, unknown>,
+	) {
 		this.#controllers = controllers
 		this.#server = server
+		this.#viewEngine = viewEngine
+		this.#viewHelpers = viewHelpers
 	}
 
 	/**
    * @internal
    */
 	#state: RouteState = []
+
+	get state() {
+		return this.#state
+	}
 
 	/**
 	 * Make urls in controllers and views
@@ -99,8 +122,18 @@ export default class Routes {
 			const { controller, action } = this.specToControllerAndAction(spec)
 
 			return async (req, res) => {
-				const controllerInstance = this.#controllers.new(controller, req, res)
-				const actionResponse = await (controllerInstance[action as keyof Controller] as unknown as () => Promise<unknown>)()
+				const controllerInstance = this.#controllers.new(
+					controller,
+					action,
+					this.#viewEngine,
+					{
+						...this.#viewHelpers,
+						paths: this.make,
+					},
+					req,
+					res,
+				)
+				const actionResponse = await (controllerInstance[action as keyof Controller] as () => unknown | (() => Promise<unknown>))()
 
 				// If the action didn't provide a response,
 				// try to render the template corresponding to the controller and action name
@@ -119,21 +152,35 @@ export default class Routes {
 	 * @internal
 	 */
 	private controllerCheck(spec: RouteSpecification) {
-		const { controller } = this.specToControllerAndAction(spec)
+		const { controller, action } = this.specToControllerAndAction(spec)
 
-		this.#controllers.check(controller)
+		this.#controllers.check(controller, action)
 	}
 
 	addRoute(route: RouteState[0], scope: string) {
-		route.path = scope.endsWith("/") ? scope : `${scope}/${route.path}`
+		if (route.path.startsWith("/")) {
+			route.path = route.path.slice(1, route.path.length)
+		}
 
-		this.#server.fastify.route(
-			{
-				method: route.method,
-				url: route.path,
-				handler: this.specToHandler(route.spec),
-			},
-		)
+		route.path = scope.endsWith("/") ? scope + route.path : `${scope}/${route.path}`
+
+		// Fastify requires routes to start with '/' or '*'
+		if (!route.path.startsWith("/") && !route.path.startsWith("*")) {
+			route.path = `/${route.path}`
+		}
+
+		try {
+			this.#server.fastify.route(
+				{
+					method: route.method,
+					url: route.path,
+					handler: this.specToHandler(route.spec),
+				},
+			)
+
+		} catch (e) {
+			throw new Errors.RouteError(route, e)
+		}
 
 		this.#state.push(route)
 

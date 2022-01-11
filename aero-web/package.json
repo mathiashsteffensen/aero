@@ -7,20 +7,28 @@
   "repository": "https://github.com/mathiashsteffensen/aero/aero-web",
   "author": "Mathias H Steffensen",
   "license": "MIT",
-  "private": false,
   "dependencies": {
     "ajv": "^8.8.2",
     "cuid": "^2.1.8",
     "ejs": "^3.1.6",
     "fastify": "^3.25.1",
+    "fastify-formbody": "^5.2.0",
     "fastify-static": "^4.5.0",
     "pino": "^7.6.0",
+    "pluralize": "^8.0.0",
+    "qs": "^6.10.2",
     "schema-validator": "^3.3.1"
   },
   "devDependencies": {
     "@aero/shared": "../shared",
+    "@types/pluralize": "^0.0.29",
+    "@types/qs": "^6.9.7",
+    "eslint": "^8.6.0",
+    "mocha": "^9.1.3",
     "pino-pretty": "^7.3.0",
     "typedoc": "^0.22.10",
-    "typedoc-plugin-rename-defaults": "^0.4.0"
-  }
+    "typedoc-plugin-rename-defaults": "^0.4.0",
+    "typescript": "^4.5.4"
+  },
+  "packageManager": "yarn@3.1.1"
 }

@@ -3,16 +3,17 @@ import pluralize from "pluralize"
 
 import AeroRecord from "./AeroRecord"
 import BasicObject from "./BasicObject"
-import Hooks from "./Hooks"
-import { ConstructorArgs, HookType, ModelAttributes, QueryResult } from "./types"
+import * as Errors from "./Errors"
 import Changes from "./Changes"
+import Hooks from "./Hooks"
+
+import { ConstructorArgs, HookType, ModelAttributes, QueryResult } from "./types"
 
 const privateAttributes = {
 	isPersisted: Symbol("isPersisted"),
 	changes: Symbol("changes"),
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * AeroRecord.Base is the class all models in your application should inherit from
  *
@@ -58,7 +59,7 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	get query() {
 		return AeroRecord
 			.connection
-			.knex((this.constructor as typeof Base).tableName)
+			.knex((this.class<typeof Base>()).tableName)
 	}
 
 	/**
@@ -79,6 +80,14 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		const record = new this() as TRecord
 
 		record.fromRow(row as Awaited<Knex.ResolveTableType<TRecord>>)
+
+		return record
+	}
+
+	static async find<TRecord extends Base<TRecord> & {id: string}>(id: string | number): Promise<TRecord> {
+		const record = await this.findBy<TRecord>({ id } as unknown as ConstructorArgs<TRecord>)
+
+		if (!record) throw new Errors.RecordNotFound(`Couldn't find ${this.name} with id = "${id}"`)
 
 		return record
 	}
@@ -156,7 +165,7 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	}
 
 	get callHooks(): (timing: "before" | "after", event: HookType) => void {
-		return (this.constructor as typeof Base).hooks.callHooks<Base<any>>(this)
+		return this.class<typeof Base>().hooks.callHooks<Base<TRecord>>(this)
 	}
 
 	static new<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord> = {}) {

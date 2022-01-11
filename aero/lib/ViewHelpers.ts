@@ -23,11 +23,11 @@ export default class ViewHelpers {
 		return asset
 	}
 
-	style_tag = (stylesheet: string) => {
+	styleTag = (stylesheet: string) => {
 		return `<link href="${stylesheet}" rel="stylesheet" />`
 	}
 
-	local_style_tag = (stylesheet: string) => {
+	localStyleTag = (stylesheet: string) => {
 		const asset = this.asset(stylesheet)
 
 		const cssHref = asset.css
@@ -36,14 +36,14 @@ export default class ViewHelpers {
 			throw new Error(`Couldn't find stylesheet for asset with name ${stylesheet}, loaded manifest for this asset is\n${asset}`)
 		}
 
-		return this.style_tag(`/${cssHref}`)
+		return this.styleTag(`/${cssHref}`)
 	}
 
-	script_tag = (script: string) => {
+	scriptTag = (script: string) => {
 		return `<script src="${script}" defer async ></script>`
 	}
 
-	local_script_tag = (script: string) => {
+	localScriptTag = (script: string) => {
 		const asset = this.asset(script)
 
 		const scriptHref = asset.js
@@ -52,6 +52,6 @@ export default class ViewHelpers {
 			throw new Error(`Couldn't find stylesheet for asset with name ${script}, loaded manifest for this asset is\n${asset}`)
 		}
 
-		return this.script_tag(`/${scriptHref}`)
+		return this.scriptTag(`/${scriptHref}`)
 	}
 }

@@ -1,3 +1,5 @@
+import pluralize from "pluralize"
+
 import Routes from "./Routes"
 import { RouteOptions, RouteSpecification } from "./types"
 
@@ -64,6 +66,29 @@ export default class RouteBuilder {
 		}, this.#scope)
 	}
 
+	/**
+	 * Defines a PUT route
+	 *
+	 * @param path - the path of the PUT route
+	 * @param spec - the route specification, controller/action pair
+	 * @param options - options for this route
+	 */
+	put(path: string, spec: RouteSpecification, options: RouteOptions = {}) {
+		this.#routes.addRoute({
+			method: "PUT",
+			path,
+			spec,
+			options,
+		}, this.#scope)
+	}
+
+	/**
+	 * Defines a DELETE route
+	 *
+	 * @param path - the path of the DELETE route
+	 * @param spec - the route specification, controller/action pair
+	 * @param options - options for this route
+	 */
 	delete(path: string, spec: RouteSpecification, options: RouteOptions = {}) {
 		this.#routes.addRoute({
 			method: "DELETE",
@@ -71,5 +96,27 @@ export default class RouteBuilder {
 			spec,
 			options,
 		}, this.#scope)
+	}
+
+	/**
+	 * Registers an application resource
+	 *
+	 * @param resourceName
+	 * @param options
+	 */
+	resource(resourceName: string, options: RouteOptions = {}) {
+		const controllerName = pluralize.plural(resourceName)
+		const as = options.as || resourceName
+
+		// Creating a new resource
+		this.get(`${resourceName}/new`, `${controllerName}#new`, { as: `new_${as}` })
+		this.post(resourceName, `${controllerName}#create`, { as: `new_${as}` })
+
+		// Editing an existing resource
+		this.get(`${resourceName}/:id/edit`, `${controllerName}#edit`, { as: `edit_${as}` })
+		this.put(resourceName, `${controllerName}#update`, { as: `edit_${as}` })
+
+		// Viewing a resource
+		this.get(`${resourceName}/:id`, `${controllerName}#read`, { as })
 	}
 }

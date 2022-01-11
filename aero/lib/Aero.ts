@@ -5,6 +5,7 @@ import * as path from "path"
 // Internal dependencies
 import AeroWeb from "@aero/aero-web"
 import Routes from "@aero/aero-web/dist/typings/Routes"
+import AeroRecord from "@aero/aero-record"
 
 // Load the library
 import Application from "./Application"
@@ -12,6 +13,8 @@ import Root from "./Root"
 import Config from "./Config"
 import ENV from "./ENV"
 import Logger from "./Logger"
+import ViewHelpers from "./ViewHelpers"
+import FormHelpers from "./FormHelpers"
 
 /**
  * abstract class defining a full-fledged web application
@@ -79,25 +82,40 @@ export default abstract class Aero {
 	 *
 	 * @remarks
 	 * Imports config/Application and instantiates an app, configures, and initializes it.
-	 * Also compiles frontend assets via ESBuild
 	 *
 	 * @param applicationPath - The path where your Application class can be found
 	 */
 	static async initialize(applicationPath = "config/Application") {
 		try {
-			this.application = new (await import(this.root.join(applicationPath))).default(this)
+			const ApplicationClass = (await import(this.root.join(applicationPath))).default
+			this.application = new ApplicationClass(this)
 
+			// Configure and initialize Aero.Application instance
 			this.application.configure(this.config)
 			await this.application.initialize(this)
 
-			this.routes = new AeroWeb.Routes(this.application.controllers, this.application.server)
-
+			// Load the routes
+			this.routes = new AeroWeb.Routes(
+				this.application.controllers,
+				this.application.server,
+				this.application.viewEngine,
+				{
+					...new ViewHelpers(this.application.assetPipeline.assetManifest),
+					...new FormHelpers(),
+				},
+			)
 			await import(this.root.join(this.config.routesFile))
+
+			// Establish connection to AeroRecord
+			AeroRecord.establishConnection(
+				this.env.toString(),
+				this.root.join(this.config.databaseFile),
+			)
 
 			return this
 		} catch (e) {
 			this.logger.fatal(e)
-			process.exit()
+			return this // Just for type-checking, Logger.fatal will exit the process
 		}
 	}
 

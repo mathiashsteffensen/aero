@@ -1,0 +1,9 @@
+{
+  "extends": "../shared/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./lib",
+    "outDir": "./dist/js",
+    "declarationDir": "./dist/typings"
+  },
+  "exclude": ["./test", "./dist"]
+}

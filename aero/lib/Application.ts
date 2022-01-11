@@ -5,7 +5,6 @@ import AeroWeb, { Server } from "@aero/aero-web"
 import Config from "./Config"
 import ENV from "./ENV"
 import Aero from "./Aero"
-import Templates from "./Templates"
 import AssetPipeline, { IAssetPipeline } from "./AssetPipeline"
 import ViewHelpers from "./ViewHelpers"
 import Root from "./Root"
@@ -22,21 +21,16 @@ export default abstract class Application implements IApplication {
 	env = new ENV()
 	root: Root
 	logger: BaseLogger
-	templates = new Templates()
+	viewEngine = new AeroWeb.EJSViewEngine()
 	assetPipeline: IAssetPipeline = new AssetPipeline()
 	controllers = new AeroWeb.Controllers()
 	viewHelpers!: ViewHelpers
-	server: Server
+	server!: Server
 
 	protected constructor(aero: typeof Aero) {
 		this.config = aero.config
 		this.root = aero.root
 		this.logger = aero.logger
-
-		this.server = new AeroWeb.Server({
-			logger: this.logger,
-			staticDir: this.root.join("public"),
-		})
 	}
 
 	/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
@@ -44,14 +38,19 @@ export default abstract class Application implements IApplication {
 	/* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
 
 	async initialize(aero: typeof Aero) {
+		this.server = new AeroWeb.Server({
+			logger: this.logger,
+			staticDir: this.root.join(this.config.staticDir),
+			staticDirPathPrefix: `/${this.config.staticDir}/`,
+		})
+
 		await this.controllers.load(
 			this.root.join("app/controllers"),
 			this.logger.fatal,
 		)
 
-		this.templates.load(
-			this.root.join(this.config.viewDir, "pages"),
-			this.root.join(this.config.viewDir, "layouts"),
+		this.viewEngine.load(
+			this.root.join(this.config.viewDir),
 		)
 
 		this.assetPipeline.compile(aero).then(() => {

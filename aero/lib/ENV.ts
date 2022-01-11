@@ -37,15 +37,15 @@ export default class ENV {
 	fetch(key: string, defaultValue?: string) {
 		const value = process.env[key]
 
-		if (!value) {
-			if (defaultValue) {
-				return defaultValue
-			} else {
-				throw new ENVError(`Key ${key} not found in environment, and no default value was provided`)
-			}
-		} {
+		if (value) {
 			return value
 		}
+
+		if (defaultValue) {
+			return defaultValue
+		}
+
+		throw new ENVError(`Key ${key} not found in environment, and no default value was provided`)
 	}
 
 	/**

@@ -1,0 +1,25 @@
+{
+  "name": "@aero/aero-job",
+  "version": "1.0.0",
+  "description": "Background processing framework for Aero",
+  "main": "dist/js/AeroJob.js",
+  "types": "dist/typings/AeroJob.d.ts",
+  "repository": "https://github.com/mathiashsteffensen/aero/aero-job",
+  "author": "Mathias H Steffensen",
+  "license": "MIT",
+  "dependencies": {
+    "bull": "^4.2.0",
+    "pino": "^7.6.0"
+  },
+  "devDependencies": {
+    "@aero/shared": "../shared",
+    "@types/bull": "^3.15.7",
+    "eslint": "^8.6.0",
+    "mocha": "^9.1.3",
+    "pino-pretty": "^7.3.0",
+    "typedoc": "^0.22.10",
+    "typedoc-plugin-rename-defaults": "^0.4.0",
+    "typescript": "^4.5.4"
+  },
+  "packageManager": "yarn@3.1.1"
+}

@@ -1,13 +1,15 @@
 import * as fs from "fs"
+import { FastifyReply, FastifyRequest } from "fastify"
 
 import Controller, { ControllerConstructor } from "./Controller"
-import { FastifyReply, FastifyRequest } from "fastify"
+
+import { ViewEngine } from "./types"
 
 const toSnakeCase = (s: string) =>
 	s[0]?.toLowerCase() + s.slice(1).replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
 
 export default class Controllers {
-	#state: Record<string, ControllerConstructor> = {}
+	#state: Map<string, ControllerConstructor> = new Map<string, ControllerConstructor>()
 
 	// TODO: Clean up this shitty controller parsing - a couple comments wouldn't hurt
 	async loadDir(dir: string, controllerNamePrefix = "") {
@@ -19,9 +21,9 @@ export default class Controllers {
 			if (f.isFile()) {
 				const controllerName = toSnakeCase(f.name).split("_controller")[0] || ""
 				if (controllerNamePrefix) {
-					this.#state[`${controllerNamePrefix}_${controllerName}`] = await importFile()
+					this.#state.set(`${controllerNamePrefix}_${controllerName}`, await importFile())
 				} else {
-					this.#state[controllerName] = await importFile()
+					this.#state.set(controllerName, await importFile())
 				}
 			} else {
 				if (controllerNamePrefix) {
@@ -67,30 +69,53 @@ export default class Controllers {
 	}
 
 	/**
-	 * Checks if a controller has been loaded
+	 * Checks if a controller and action has been loaded
 	 *
 	 * @param controllerName - the name of the controller
+	 * @param action - the method to check the controller for
 	 */
-	check(controllerName: string) {
-		const controller = this.#state[controllerName]
+	check(controllerName: string, action: string) {
+		const ControllerClass = this.#state.get(controllerName)
 
-		if (!controller) {
+		if (!ControllerClass) {
 			throw new Error(`Controller with name ${controllerName} not found, loaded controllers are \n${Object.keys(this.#state).join("\n")}`)
+		}
+
+		const controller = new ControllerClass(
+			controllerName,
+			{ render() { return "" } },
+			{},
+			{} as FastifyRequest,
+			{} as FastifyReply,
+		)
+
+		if (!controller[action as keyof Controller]) {
+			throw new Error(`Controller with name ${controllerName} does not have specified action ${action}`)
 		}
 	}
 
 	/**
-	 * Instantiate a new Controller instance
+	 * Instantiate a new Controller instance, and it's action
 	 *
 	 * @param controllerName - name of the controller
+	 * @param action - the action to check for
+	 * @param viewEngine - the engine to use for rendering views
+	 * @param viewHelpers - helpers to pass to the template
 	 * @param req - the Fastify request object
 	 * @param res - the Fastify reply object
 	 */
-	new(controllerName: string, req: FastifyRequest, res: FastifyReply): Controller {
-		const controller = this.#state[controllerName]
+	new(
+		controllerName: string,
+		action: string,
+		viewEngine: ViewEngine,
+		viewHelpers: Record<string, unknown>,
+		req: FastifyRequest,
+		res: FastifyReply,
+	): Controller {
+		const controller = this.#state.get(controllerName)
 
-		this.check(controllerName)
+		this.check(controllerName, action)
 
-		return new (controller as ControllerConstructor)(controllerName, req, res)
+		return new (controller as ControllerConstructor)(controllerName, viewEngine, viewHelpers, req, res)
 	}
 }

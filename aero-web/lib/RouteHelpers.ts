@@ -13,7 +13,9 @@ const inferNameFromPath = (path: string) => {
 		name = name.slice(0, path.length - 2)
 	}
 
-	return name.replace("/", "_")
+	name = name.replaceAll("/", "_")
+
+	return name.replaceAll("-", "_")
 }
 
 export default class RouteHelpers {

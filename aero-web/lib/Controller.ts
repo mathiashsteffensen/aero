@@ -4,7 +4,13 @@ import { ViewEngine } from "./types"
 import Parameters from "./Parameters"
 
 export type ControllerConstructor = {
-	new(controllerName: string, req: FastifyRequest, res: FastifyReply): Controller
+	new(
+		controllerName: string,
+		viewEngine: ViewEngine,
+		viewHelpers: Record<string, unknown>,
+		req: FastifyRequest,
+		res: FastifyReply
+	): Controller
 }
 
 export default abstract class Controller {
@@ -12,36 +18,45 @@ export default abstract class Controller {
 
 	controllerName: string
 	viewEngine: ViewEngine
+	viewHelpers: Record<string, unknown>
 	req: FastifyRequest
 	res: FastifyReply
 	params: Parameters
 
-	protected constructor(controllerName: string, viewEngine: ViewEngine, req: FastifyRequest, res: FastifyReply) {
+	protected constructor(
+		controllerName: string,
+		viewEngine: ViewEngine,
+		viewHelpers: Record<string, unknown>,
+		req: FastifyRequest,
+		res: FastifyReply,
+	) {
 		this.controllerName = controllerName
 		this.viewEngine = viewEngine
+		this.viewHelpers = viewHelpers
 		this.req = req
 		this.res = res
 		this.params = new Parameters(this.req)
 	}
 
 	render(templateName: string) {
-		const layoutName = (this.constructor as typeof Controller).layout
-		const fullTemplateName = `${this.controllerName.replace("_", "/")}/${templateName}`
+		const layoutName = `layouts/${(this.constructor as typeof Controller).layout}`
+		const pageName = `pages/${this.controllerName.replace("_", "/")}/${templateName}`
 
 		this.res.type("text/html")
 
 		return this.viewEngine.render(layoutName, {
 			...this.viewLocals,
 			yield: this.viewEngine.render(
-				fullTemplateName,
+				pageName,
 				this.viewLocals,
 			),
 		})
 	}
 
-	private get viewLocals() {
+	get viewLocals() {
 		return {
 			...this,
+			...this.viewHelpers,
 		}
 	}
 }

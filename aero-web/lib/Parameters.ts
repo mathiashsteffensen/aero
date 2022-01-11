@@ -4,6 +4,11 @@ import SchemaValidator from "ajv"
 
 import * as Errors from "./Errors"
 import { ParamType } from "./types"
+import { ParameterSchema } from "./types/ParameterSchema"
+
+export interface ParameterValidationOptions {
+	additionalProperties?: boolean
+}
 
 export default class Parameters {
 	readonly #params: RouteGenericInterface["Params"]
@@ -17,18 +22,60 @@ export default class Parameters {
 		}
 	}
 
-	validate<T>(schema: {
-		[Key in keyof T]: {
+	validate<T>(schema: ParameterSchema<T>, options: ParameterValidationOptions = {}) {
+		const properties: Record<string, {
 			type: ParamType
-			required?: boolean
+			properties?: Record<string, {
+				type: ParamType
+			}>,
+			required?: Array<string>
+		}> = {}
+		const required: Array<string> = []
+
+		for (const key of Object.keys(schema)) {
+			const schemaValue = schema[key as keyof T]
+
+			if (schemaValue.type === "object") {
+				properties[key] = {
+					type: schemaValue.type,
+					properties: {},
+					required: [],
+				}
+
+				for (const nestedKey of Object.keys(schemaValue.properties || {})) {
+					const nestedSchemaValue = schemaValue.properties?.[nestedKey as keyof T[keyof T]]
+
+					const type = nestedSchemaValue?.type
+
+					if (!type) {
+						continue
+					}
+
+					(properties[key] as { properties: Record<string, { type: ParamType }> }).properties[nestedKey] = {
+						type,
+					};
+
+					(properties[key] as { required: Array<string> }).required.push(nestedKey)
+				}
+			} else {
+				properties[key] = {
+					type: schemaValue.type,
+				}
+			}
+
+			if (schemaValue.required) {
+				required.push(key)
+			}
 		}
-	}) {
-		this.validator.validate({
+
+		const ajvSchema = {
 			type: "object",
-			properties: schema,
-			required: Object.keys(schema).filter((schemaKey) => schema[schemaKey as keyof T].required),
-			additionalProperties: false,
-		}, this.#params)
+			properties,
+			required,
+			additionalProperties: options.additionalProperties || false,
+		}
+
+		this.validator.validate(ajvSchema, this.#params)
 		if (this.validator.errors && this.validator.errors.length !== 0) {
 			throw new Errors.ParameterValidationError(this.validator.errors)
 		}

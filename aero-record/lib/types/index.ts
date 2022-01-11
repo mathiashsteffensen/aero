@@ -1,5 +1,6 @@
 export * from "./AttributeDecorator"
 export * from "./ColumnType"
+export * from "./Constructor"
 export * from "./ConstructorArgs"
 export * from "./UsableFunction"
 export * from "./HookAction"
