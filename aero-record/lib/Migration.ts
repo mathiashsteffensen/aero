@@ -1,5 +1,5 @@
 import { Knex } from "knex"
-import CreateTableBuilder from "./schema-builders/CreateTableBuilder"
+import TableBuilder from "./schema-builders/TableBuilder"
 
 export interface IMigration {
 	up: () => void
@@ -27,8 +27,8 @@ export default class Migration {
 	 * @param tableName - name of the table to create
 	 * @param callback - callback used to configure the table
 	 */
-	async createTable(tableName: string, callback: (t: CreateTableBuilder) => void) {
-		return this.withSchema.createTable(tableName, (knex: Knex.CreateTableBuilder) => callback(new CreateTableBuilder(knex)))
+	async createTable(tableName: string, callback: (t: TableBuilder) => void) {
+		return this.withSchema.createTable(tableName, (knex: Knex.CreateTableBuilder) => callback(new TableBuilder(knex)))
 	}
 
 	/**
@@ -37,8 +37,8 @@ export default class Migration {
 	 * @param tableName - name of the table to alter
 	 * @param callback - callback used to perform alterations on the table
 	 */
-	async alterTable(tableName: string, callback: (t: CreateTableBuilder) => void) {
-		return this.withSchema.alterTable(tableName, (knex: Knex.CreateTableBuilder) => callback(new CreateTableBuilder(knex)))
+	async alterTable(tableName: string, callback: (t: TableBuilder) => void) {
+		return this.withSchema.alterTable(tableName, (knex: Knex.CreateTableBuilder) => callback(new TableBuilder(knex)))
 	}
 
 	/**

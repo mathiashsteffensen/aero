@@ -29,9 +29,7 @@ export default class Changes<TRecord extends Base<TRecord>> {
 	/**
 	 * @internal
 	 */
-	#state: {
-    [Key in ModelAttributes<TRecord>]?: [TRecord[Key], TRecord[Key]]
-  }  = {}
+	#state = new Map<ModelAttributes<TRecord>, [TRecord[ModelAttributes<TRecord>], TRecord[ModelAttributes<TRecord>]]>()
 
 	constructor(model: TRecord) {
 		this.#originalValues = model.clone()
@@ -46,24 +44,30 @@ export default class Changes<TRecord extends Base<TRecord>> {
 			return
 		}
 
-		if (!this.#state[attribute]) {
-			this.#state[attribute] = [oldValue, newValue]
+		const currentChanges = this.#state.get(attribute)
+
+		if (!currentChanges) {
+			this.#state.set(attribute, [oldValue, newValue])
 			return
 		}
 
 		if (this.#originalValues[attribute] !== newValue) {
-			this.#state[attribute] = [oldValue, newValue]
+			this.#state.set(attribute, [oldValue, newValue])
 			return
 		}
 
-		this.#state[attribute] = undefined
+		this.#state.delete(attribute)
 	}
 
 	includes(attribute: ModelAttributes<TRecord>) {
-		return Boolean(this.get(attribute))
+		return this.#state.has(attribute)
 	}
 
 	get(attribute: ModelAttributes<TRecord>) {
-		return this.#state[attribute]
+		return this.#state.get(attribute)
+	}
+
+	all() {
+		return Object.fromEntries(this.#state)
 	}
 }

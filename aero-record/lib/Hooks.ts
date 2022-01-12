@@ -1,6 +1,7 @@
-import { HookAction, HookOptions, HookState, HookType, ModelMethods } from "./types"
-import * as Errors from "./Errors"
 import Base from "./Base"
+import * as Errors from "./Errors"
+
+import { HookAction, HookOptions, HookState, HookType, ModelMethods } from "./types"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
@@ -41,7 +42,7 @@ export default class Hooks {
 		timing: "before" | "after",
 		event: HookType,
 		methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>> | ((record: TRecord) => void) | ((record: TRecord) => Promise<void>),
-		options: HookOptions<keyof TRecord> = {},
+		options: HookOptions<TRecord> = {},
 	) {
 		if (!Object.keys(this.state[timing]).includes(event)) {
 			throw new Errors.InvalidEventError(`Valid events for ${timing} hooks include ${Object.keys(this.state[timing])}, got "${event}"`)
@@ -51,7 +52,7 @@ export default class Hooks {
 			this.state[timing][event].push(...methods.map(method => {
 				return {
 					action: method,
-					options: options,
+					options: options as HookOptions<Record<string, unknown>>,
 				}
 			}))
 		} else {
@@ -72,7 +73,7 @@ export default class Hooks {
 	before = <TRecord extends Base<TRecord>>(
 		event: HookType,
 		methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>> | ((record: TRecord) => void) | ((record: TRecord) => Promise<void>),
-		options: HookOptions<keyof TRecord> = {},
+		options: HookOptions<TRecord> = {},
 	) => {
 		this.registerHook<TRecord>("before", event, methods, options)
 	}
@@ -87,7 +88,7 @@ export default class Hooks {
 	after = <TRecord extends Base<TRecord>>(
 		event: HookType,
 		methods: ModelMethods<TRecord> | Array<ModelMethods<TRecord>> | ((record: TRecord) => void) | ((record: TRecord) => Promise<void>),
-		options: HookOptions<keyof TRecord> = {},
+		options: HookOptions<TRecord> = {},
 	) => {
 		this.registerHook<TRecord>("after", event, methods, options)
 	}
@@ -101,19 +102,28 @@ export default class Hooks {
 		let shouldCallHook = true
 
 		if (hook.options.if) {
-			if (model.attributeIsMethod(hook.options.if)) {
-				shouldCallHook = Boolean(await model.__send_func__(hook.options.if))
+			if (typeof hook.options.if === "function") {
+				shouldCallHook = await hook.options.if(model)
 			} else {
-				shouldCallHook = Boolean(model.__send__(hook.options.if))
+				if (model.attributeIsMethod(hook.options.if)) {
+					shouldCallHook = Boolean(await model.__send_func__(hook.options.if))
+				} else {
+					shouldCallHook = Boolean(model.__send__(hook.options.if))
+				}
 			}
 		}
 
 		if (hook.options.unless) {
-			if (model.attributeIsMethod(hook.options.unless)) {
-				shouldCallHook = !await model.__send_func__(hook.options.unless)
+			if (typeof hook.options.unless === "function") {
+				shouldCallHook = await hook.options.unless(model)
 			} else {
-				shouldCallHook = !model.__send__(hook.options.unless)
+				if (model.attributeIsMethod(hook.options.unless)) {
+					shouldCallHook = !await model.__send_func__(hook.options.unless)
+				} else {
+					shouldCallHook = !model.__send__(hook.options.unless)
+				}
 			}
+
 		}
 
 		return shouldCallHook

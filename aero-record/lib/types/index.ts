@@ -1,4 +1,5 @@
 export * from "./AttributeDecorator"
+export * from "./ColumnOptions"
 export * from "./ColumnType"
 export * from "./Constructor"
 export * from "./ConstructorArgs"

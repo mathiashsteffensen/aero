@@ -4,6 +4,10 @@ import Base from "../lib/Base"
 
 export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroRecord.Base<TRecord> {
 	id!: string
+
+	createdAt?: Date
+	updatedAt?: Date
+
 	name?: string
 	email?: string
 	password?: string

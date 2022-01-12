@@ -104,8 +104,11 @@ describe("Base", () => {
 
 		context("when record exists in the database", () => {
 			beforeEach(async () => {
-				const dummyModel = new DummyModel()
+				const dummyModel: DummyModel = DummyModel.new()
+				console.log("a",dummyModel)
 				await dummyModel.save()
+
+				console.log("b",dummyModel)
 
 				params = {
 					id: dummyModel.id,
@@ -126,7 +129,7 @@ describe("Base", () => {
 	describe("#callHooks", () => {
 		let dummyModel: DummyModel
 		let method: ModelMethods<DummyModel> | Array<ModelMethods<DummyModel>>
-		let options: HookOptions<keyof DummyModel>
+		let options: HookOptions<DummyModel>
 
 		beforeEach(async () => {
 			dummyModel = new DummyModel()
@@ -291,10 +294,10 @@ describe("Base", () => {
 
 		beforeEach(async () => {
 			DummyModel.before<DummyModel>("create", "setId")
-			DummyModel.after<DummyModel>("create", "sendConfirmationEmail")
-			DummyModel.after<DummyModel>("update", "sendConfirmationEmail")
+			DummyModel.before<DummyModel>("create", "sendConfirmationEmail")
+			DummyModel.before<DummyModel>("update", "sendConfirmationEmail")
 
-			dummyModel = new DummyModel(attributes)
+			dummyModel = DummyModel.new(attributes)
 			await dummyModel.save()
 		})
 
@@ -303,14 +306,19 @@ describe("Base", () => {
 				assert.equal(dummyModel.isPersisted, true)
 			})
 
-			it("calls the before/after create hooks", () => {
+			it("calls the before create hooks", () => {
 				assert.equal(dummyModel.calledSetId, 1)
 				assert.equal(dummyModel.calledSendConfirmationEmail, 1)
+			})
+
+			it("sets updated_at and created_at", () => {
+				assert.equal(dummyModel.createdAt instanceof Date, true)
 			})
 		})
 
 		context("when model has already been saved to the database", () => {
 			beforeEach(async () => {
+				dummyModel.id = "new-id"
 				await dummyModel.save()
 			})
 
@@ -318,7 +326,7 @@ describe("Base", () => {
 				assert.equal(dummyModel.isPersisted, true)
 			})
 
-			it("calls the after update hook", () => {
+			it("calls the before update hook", () => {
 				assert.equal(dummyModel.calledSendConfirmationEmail, 2)
 			})
 

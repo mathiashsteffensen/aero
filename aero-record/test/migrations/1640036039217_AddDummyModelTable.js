@@ -7,8 +7,8 @@ class AddDummyModelsTable extends Migration {
 
             t.addColumn("string", "name")
             t.addColumn("string", "email")
-            t.addColumn("integer", "calledSetId")
-            t.addColumn("integer", "calledSendConfirmationEmail")
+            t.addColumn("integer", "calledSetId", { default: 0 })
+            t.addColumn("integer", "calledSendConfirmationEmail", { default: 0 })
         })
     }
 
