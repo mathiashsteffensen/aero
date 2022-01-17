@@ -1,74 +1,71 @@
 import * as assert from "assert"
 
-import AeroRecord from "../../lib/AeroRecord"
-
 import BaseDummyModel  from "../BaseDummyModel"
 
-class DummyModel extends BaseDummyModel<DummyModel> {
-	@AeroRecord.Decorators.hasEncryptedPassword()
-	declare password: string
-}
+describe("AeroRecord", () => {
+	describe(".Decorators", () => {
+		describe(".hasEncryptedPassword", () => {
+			class DummyModel extends BaseDummyModel<DummyModel> {}
 
-describe("Decorators", () => {
-	describe(".hasEncryptedPassword", () => {
-		context("when creating a record", () => {
-			const dummyModel = DummyModel.new<DummyModel>({
-				email: "mathias@booktid.net",
-				password: "password",
+			context("when creating a record", () => {
+				const dummyModel = DummyModel.new<DummyModel>({
+					email: "mathias@booktid.net",
+					password: "password",
+				})
+
+				beforeEach(async () => {
+					dummyModel.setId()
+					await dummyModel.save()
+				})
+
+				it("hashes the password", () => {
+					assert.notEqual(dummyModel.password, "password")
+				})
 			})
 
-			beforeEach(async () => {
-				dummyModel.setId()
-				await dummyModel.save()
+			context("when updating the password", () => {
+				const dummyModel = DummyModel.new<DummyModel>({
+					email: "mathias@booktid.net",
+					password: "password",
+				})
+
+				beforeEach(async () => {
+					dummyModel.setId()
+					await dummyModel.save()
+
+					dummyModel.password = "new-password"
+					await dummyModel.save()
+				})
+
+				it("hashes the password", () => {
+					assert.notEqual(dummyModel.password, "new-password")
+				})
 			})
 
-			it("hashes the password", () => {
-				assert.notEqual(dummyModel.password, "password")
-			})
-		})
+			context("when updating, but not the password", () => {
+				const dummyModel = DummyModel.new<DummyModel>({
+					email: "mathias@booktid.net",
+					password: "password",
+				})
 
-		context("when updating the password", () => {
-			const dummyModel = DummyModel.new<DummyModel>({
-				email: "mathias@booktid.net",
-				password: "password",
-			})
+				let passwordBefore: string
+				let passwordAfter: string
 
-			beforeEach(async () => {
-				dummyModel.setId()
-				await dummyModel.save()
+				beforeEach(async () => {
+					dummyModel.setId()
+					await dummyModel.save()
 
-				dummyModel.password = "new-password"
-				await dummyModel.save()
-			})
+					passwordBefore = dummyModel.password as string
 
-			it("hashes the password", () => {
-				assert.notEqual(dummyModel.password, "new-password")
-			})
-		})
+					dummyModel.email = "newName@booktid.net"
+					await dummyModel.save()
 
-		context("when updating, but not the password", () => {
-			const dummyModel = DummyModel.new<DummyModel>({
-				email: "mathias@booktid.net",
-				password: "password",
-			})
+					passwordAfter = dummyModel.password as string
+				})
 
-			let passwordBefore: string
-			let passwordAfter: string
-
-			beforeEach(async () => {
-				dummyModel.setId()
-				await dummyModel.save()
-
-				passwordBefore = dummyModel.password
-
-				dummyModel.email = "newName@booktid.net"
-				await dummyModel.save()
-
-				passwordAfter = dummyModel.password
-			})
-
-			it("doesn't hash the password", () => {
-				assert.equal(passwordBefore, passwordAfter)
+				it("doesn't hash the password", () => {
+					assert.equal(passwordBefore, passwordAfter)
+				})
 			})
 		})
 	})

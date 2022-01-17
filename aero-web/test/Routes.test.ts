@@ -17,7 +17,17 @@ describe("Routes", () => {
 		staticDirPathPrefix: "/",
 	})
 
-	beforeEach(() => routes = new Routes(controllers, server, { render() { return "" } }, {}))
+	beforeEach(() =>
+		routes = new Routes(
+			controllers,
+			server,
+			{
+				async render() { return "" },
+				async load(d: string) { console.log(d) },
+			},
+			{},
+		),
+	)
 
 	describe("#addRoute", () => {
 		const args: {

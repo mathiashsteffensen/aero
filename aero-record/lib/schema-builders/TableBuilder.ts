@@ -45,4 +45,16 @@ export default class TableBuilder {
 	renameColumn(from: string, to: string) {
 		this.knex.renameColumn(from, to)
 	}
+
+	addIndex(columns: string | Array<string>, options: { unique?: boolean } = {}) {
+		if (options.unique) {
+			this.knex.unique(typeof columns === "string" ? [columns] : columns)
+		} else {
+			this.knex.index(columns)
+		}
+	}
+
+	dropIndex(columns: string | Array<string>) {
+		this.knex.dropIndex(columns)
+	}
 }

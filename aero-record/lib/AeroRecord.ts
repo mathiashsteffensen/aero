@@ -1,4 +1,4 @@
-import pino from "pino"
+import pino, { BaseLogger } from "pino"
 
 import Base from "./Base"
 import Connection from "./Connection"
@@ -13,7 +13,7 @@ export default abstract class AeroRecord {
 	static Query = Query
 
 	static connection: Connection
-	static logger = pino({
+	static logger: BaseLogger = pino({
 		transport: {
 			target: "pino-pretty",
 			options: {

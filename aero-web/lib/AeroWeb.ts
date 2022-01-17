@@ -1,6 +1,6 @@
 import Controller from "./Controller"
 import Controllers from "./Controllers"
-import EJSViewEngine from "./EJSViewEngine"
+import * as ViewEngines from "./view-engines"
 import Routes from "./Routes"
 import RouteHelpers from "./RouteHelpers"
 import Server from "./Server"
@@ -8,7 +8,7 @@ import Server from "./Server"
 export {
 	Controller,
 	Controllers,
-	EJSViewEngine,
+	ViewEngines,
 	Routes,
 	RouteHelpers,
 	Server,
@@ -17,7 +17,7 @@ export {
 export default class AeroWeb {
 	static Controller = Controller
 	static Controllers = Controllers
-	static EJSViewEngine = EJSViewEngine
+	static ViewEngines = ViewEngines
 	static Routes = Routes
 	static RouteHelpers = RouteHelpers
 	static Server = Server

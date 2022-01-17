@@ -123,7 +123,6 @@ export default class Hooks {
 					shouldCallHook = !model.__send__(hook.options.unless)
 				}
 			}
-
 		}
 
 		return shouldCallHook
@@ -138,12 +137,12 @@ export default class Hooks {
 				const shouldCallHook = await this.shouldCallHook<TRecord>(model, hook as unknown as HookAction<TRecord>)
 
 				if (!shouldCallHook) {
-					return
+					continue
 				}
 
 				if (typeof hook.action === "function") {
 					await hook.action(model as Record<string, unknown>)
-					return
+					continue
 				}
 
 				if (model.attributeIsMethod(hook.action as ModelMethods<TRecord>)) {

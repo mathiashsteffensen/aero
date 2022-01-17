@@ -13,15 +13,15 @@ const encryptPassword = (key: string | symbol | number) => {
 	}
 }
 export const hasEncryptedPassword = (): AttributeDecorator => {
-	return (target, key) => {
+	return (target, attribute) => {
 		const Class = target.class<typeof Base>()
 
-		Class.before("create", encryptPassword(key))
-		Class.before(
+		Class.hooks.before("create", encryptPassword(attribute))
+		Class.hooks.before(
 			"update",
-			encryptPassword(key),
+			encryptPassword(attribute),
 			{
-				if: (record) => record.changes.includes(key as string),
+				if: (record) => record.attributeChanged(attribute as string),
 			},
 		)
 	}

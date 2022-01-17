@@ -138,7 +138,7 @@ export default class Routes {
 				// If the action didn't provide a response,
 				// try to render the template corresponding to the controller and action name
 				if (!actionResponse) {
-					return controllerInstance.render(action)
+					return await controllerInstance.render(action)
 				}
 
 				return actionResponse

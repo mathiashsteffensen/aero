@@ -1,5 +1,4 @@
-import Bull from "bull"
-import Queue from "./Queue"
+import AeroJob from "./AeroJob"
 
 export interface WorkerOptions {
   queue?: string
@@ -10,9 +9,8 @@ export const DEFAULT_WORKER_OPTIONS = {
 }
 
 export default class Worker {
-	private static _queue: Bull.Queue
 	static get queue() {
-		return this._queue ||= Queue.get(this.options.queue || DEFAULT_WORKER_OPTIONS.queue)
+		return this.options.queue || DEFAULT_WORKER_OPTIONS.queue
 	}
 
 	static options: WorkerOptions = {}
@@ -25,12 +23,21 @@ export default class Worker {
 		await this.enqueueJob(args, ms)
 	}
 
-	static async performAt<TWorkerArgs>(ms: number, args: TWorkerArgs) {
-		await this.enqueueJob(args, ms)
-	}
-
 	private static async enqueueJob<TWorkerArgs>(args: TWorkerArgs, ms = 0) {
-		await this.queue.add(this.name, args, { delay: ms })
+		if (ms === 0) {
+			await AeroJob.config.driver.enqueue(
+				this.queue,
+				this.name,
+				args,
+			)
+		} else {
+			await AeroJob.config.driver.schedule(
+				this.queue,
+				this.name,
+				args,
+				ms,
+			)
+		}
 	}
 
 	async perform(_args: unknown) {

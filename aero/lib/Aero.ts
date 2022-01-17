@@ -1,13 +1,11 @@
-// External dependencies
-import * as fs from "fs"
-import * as path from "path"
-
 // Internal dependencies
 import AeroWeb from "@aero/aero-web"
 import Routes from "@aero/aero-web/dist/typings/Routes"
-import AeroRecord from "@aero/aero-record"
+import AeroSupport from "@aero/aero-support"
+import { Cache } from "@aero/aero-support/lib/interfaces"
 
 // Load the library
+import { version } from "../package.json"
 import Application from "./Application"
 import Root from "./Root"
 import Config from "./Config"
@@ -68,20 +66,41 @@ export default abstract class Aero {
 	static root = new Root()
 
 	/**
+	 * Low-level cache for your application
+	 *
+	 * @remarks
+	 * Defaults to an in-memory cache implementation
+	 *
+	 * @example
+	 * Use the Redis caching implementation
+	 * ```
+	 * import Aero from "@aero/aero"
+	 * import AeroSupport from "@aero/aero-support"
+	 *
+	 * Aero.cache = new AeroSupport.Caches.Redis()
+	 * ```
+	 */
+	static cache: Cache = new AeroSupport.Caches.Memory()
+
+	/**
 	 * The configuration for your application
 	 */
 	static config = new Config()
 
+	static configure(callback: (config: Config) => void) {
+		callback(this.config)
+	}
+
 	/**
 	 * The version of Aero being run
 	 */
-	static version: string = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString()).version
+	static version = version
 
 	/**
 	 * Initialize your Aero application
 	 *
 	 * @remarks
-	 * Imports config/Application and instantiates an app, configures, and initializes it.
+	 * Imports applicationPath and instantiates an app, configures, and initializes it.
 	 *
 	 * @param applicationPath - The path where your Application class can be found
 	 */
@@ -93,6 +112,7 @@ export default abstract class Aero {
 			// Configure and initialize Aero.Application instance
 			this.application.configure(this.config)
 			await this.application.initialize(this)
+			await this.application.initDB()
 
 			// Load the routes
 			this.routes = new AeroWeb.Routes(
@@ -104,13 +124,8 @@ export default abstract class Aero {
 					...new FormHelpers(),
 				},
 			)
-			await import(this.root.join(this.config.routesFile))
 
-			// Establish connection to AeroRecord
-			AeroRecord.establishConnection(
-				this.env.toString(),
-				this.root.join(this.config.databaseFile),
-			)
+			await import(this.root.join(this.config.routesFile))
 
 			return this
 		} catch (e) {

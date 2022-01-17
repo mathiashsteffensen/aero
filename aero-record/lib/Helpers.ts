@@ -16,3 +16,13 @@ export const toCamelCase = (str: string) =>
 				substr[0]?.toUpperCase() + substr.slice(1),
 		)
 		.join("")
+
+export const snakeCaseKeys = (obj: Record<string, unknown>) => {
+	const newObj: Record<string, unknown> = {}
+
+	for (const key in obj) {
+		newObj[toSnakeCase(key)] = obj[key]
+	}
+
+	return newObj
+}

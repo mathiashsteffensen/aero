@@ -1,10 +1,14 @@
 import pino, { BaseLogger } from "pino"
 
+import AeroSupport from "@aero/aero-support"
+import FileLoader from "@aero/aero-support/dist/typings/FileLoader"
+
 import Worker from "./Worker"
-import FileLoader from "./FileLoader"
 import Runner from "./Runner"
+import Config from "./Config"
 
 export default abstract class AeroJob {
+	static config = new Config()
 	static logger: BaseLogger = pino({
 		transport: {
 			target: "pino-pretty",
@@ -15,7 +19,7 @@ export default abstract class AeroJob {
 	private static fileLoader: FileLoader
 
 	static initialize(workerDir: string) {
-		this.fileLoader = new FileLoader(workerDir)
+		this.fileLoader = new AeroSupport.FileLoader(workerDir)
 		this.fileLoader.load()
 
 		return this

@@ -1,1 +1,1 @@
-extends: ../shared/.eslintrc.yml
+extends: ../aero-support/.eslintrc.yml

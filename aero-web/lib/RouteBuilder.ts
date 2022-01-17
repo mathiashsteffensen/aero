@@ -3,9 +3,13 @@ import pluralize from "pluralize"
 import Routes from "./Routes"
 import { RouteOptions, RouteSpecification } from "./types"
 
+interface ResourceOptions {
+	except?: Array<"new" | "edit" | "create" | "update" | "show" | "index">
+}
+
 export default class RouteBuilder {
-	#routes: Routes
-	#scope: string
+	readonly #routes: Routes
+	readonly #scope: string
 
 	constructor(routes: Routes, scope = "") {
 		this.#routes = routes
@@ -33,6 +37,11 @@ export default class RouteBuilder {
 			),
 		)
 	}
+
+	/**
+	 * Alias for namespace
+	 */
+	scope = this.namespace
 
 	/**
    * Defines a GET route
@@ -100,23 +109,45 @@ export default class RouteBuilder {
 
 	/**
 	 * Registers an application resource
-	 *
-	 * @param resourceName
-	 * @param options
 	 */
-	resource(resourceName: string, options: RouteOptions = {}) {
+	resource(resourceName: string, options: RouteOptions & ResourceOptions = {}) {
 		const controllerName = pluralize.plural(resourceName)
 		const as = options.as || resourceName
 
 		// Creating a new resource
-		this.get(`${resourceName}/new`, `${controllerName}#new`, { as: `new_${as}` })
-		this.post(resourceName, `${controllerName}#create`, { as: `new_${as}` })
+		if (!options.except?.includes("new")) {
+			this.get(`${resourceName}/new`, `${controllerName}#new`, { as: `new_${as}` })
+		}
+		if (!options.except?.includes("create")) {
+			this.post(resourceName, `${controllerName}#create`, { as })
+		}
 
 		// Editing an existing resource
-		this.get(`${resourceName}/:id/edit`, `${controllerName}#edit`, { as: `edit_${as}` })
-		this.put(resourceName, `${controllerName}#update`, { as: `edit_${as}` })
+		if (!options.except?.includes("edit")) {
+			this.get(`${resourceName}/:id/edit`, `${controllerName}#edit`, { as: `edit_${as}` })
+		}
+		if (!options.except?.includes("update")) {
+			this.put(`${resourceName}/:id`, `${controllerName}#update`, { as })
+		}
 
 		// Viewing a resource
-		this.get(`${resourceName}/:id`, `${controllerName}#read`, { as })
+		this.get(`${resourceName}/:id`, `${controllerName}#show`, { as })
+	}
+
+	/**
+	 * Registers an application resource
+	 */
+	resources(resourceName: string, options: RouteOptions & ResourceOptions = {}) {
+		const clonedOptions = Object.assign({}, options)
+
+		clonedOptions.as ||= pluralize.singular(resourceName)
+
+		// Register the singular resource routes
+		this.resource(resourceName, clonedOptions)
+
+		// Register the index route
+		if (!options.except?.includes("index")) {
+			this.get(resourceName, `${resourceName}#index`)
+		}
 	}
 }

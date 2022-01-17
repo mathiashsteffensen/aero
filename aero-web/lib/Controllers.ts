@@ -83,7 +83,12 @@ export default class Controllers {
 
 		const controller = new ControllerClass(
 			controllerName,
-			{ render() { return "" } },
+			{
+				async render() { return "" },
+				async load(viewDir: string) {
+					console.log(viewDir)
+				},
+			},
 			{},
 			{} as FastifyRequest,
 			{} as FastifyReply,

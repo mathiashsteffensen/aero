@@ -1,1 +1,1 @@
-include node_modules/@aero/shared/Makefile
+include node_modules/@aero/aero-support/Makefile

@@ -1,4 +1,5 @@
 import { Knex } from "knex"
+import ResolveTableType = Knex.ResolveTableType
 import pluralize from "pluralize"
 
 import AeroRecord from "./AeroRecord"
@@ -7,13 +8,19 @@ import Changes from "./Changes"
 import * as Errors from "./Errors"
 import * as Helpers from "./Helpers"
 import Hooks from "./Hooks"
+import Query from "./Query"
+import Validator from "./Validator"
+import ValidationErrors from "./ValidationErrors"
 
 import { ConstructorArgs, HookType, ModelAttributes, QueryResult } from "./types"
 
 const privateAttributes = {
 	isPersisted: Symbol("isPersisted"),
 	changes: Symbol("changes"),
+	errors: Symbol("errors"),
 }
+
+export type DefaultBase<T = unknown> = Record<string, T> & Base<DefaultBase>
 
 /**
  * AeroRecord.Base is the class all models in your application should inherit from
@@ -80,6 +87,8 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		return this.hooks.after
 	}
 
+	static validators: Array<Validator<DefaultBase>> = []
+
 	/**
 	 * Instantiate a new query for this model
 	 *
@@ -96,19 +105,35 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	 *
 	 * @internal
 	 */
-	static query<TRecord extends Base<TRecord>>() {
-		return AeroRecord
-			.connection
-			.knex<TRecord>(this.tableName)
+	static query<TRecord extends Base<TRecord>>(): Query<TRecord> {
+		return new Query(this, this.tableName)
+	}
+
+	static where<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord>): Query<TRecord> {
+		return this.query<TRecord>().where(params)
+	}
+
+	static whereNot<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord>): Query<TRecord> {
+		return this.query<TRecord>().whereNot(params)
+	}
+
+	private get whereThis(): Query<TRecord> {
+		const Class = this.class<typeof Base>()
+
+		const primaryIdentifier = Class.primaryIdentifier as ModelAttributes<TRecord>
+
+		return Class.where<TRecord>({
+			[primaryIdentifier]: (this as unknown as TRecord)[primaryIdentifier],
+		} as ConstructorArgs<TRecord>)
+	}
+
+	static async all<TRecord extends Base<TRecord>>(): Promise<Array<TRecord>> {
+		return this.query<TRecord>().all()
 	}
 
 	static async findBy<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord>): Promise<QueryResult<TRecord>> {
-		const row = await this.query<TRecord>().where(params).first()
-		if (!row) return undefined
-
-		const record = this.new<TRecord>()
-
-		record.fromRow(row as Awaited<Knex.ResolveTableType<TRecord>>)
+		const record = await this.where(params).first()
+		if (!record[this.primaryIdentifier]) return undefined
 
 		record.__set__(privateAttributes.changes, new Changes(record))
 
@@ -131,7 +156,15 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		return record
 	}
 
-	fromRow(row: Awaited<Knex.ResolveTableType<TRecord>>) {
+	static fromRow<TRecord extends Base<TRecord>>(row: Awaited<Knex.ResolveTableType<TRecord>>): TRecord {
+		const record = this.new<TRecord>()
+
+		record.fromRow(row)
+
+		return record
+	}
+
+	private fromRow(row: Awaited<Knex.ResolveTableType<TRecord>>) {
 		const camelCased: Record<string, unknown> = {}
 
 		for (const key in row) {
@@ -141,9 +174,10 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		this.fromObject(camelCased)
 
 		this.__set__(privateAttributes.isPersisted, true)
+		this.__set__(privateAttributes.changes, new Changes(this as unknown as TRecord))
 	}
 
-	toRow() {
+	private toRow() {
 		const row: Record<string, unknown> = {}
 
 		for (const attribute in this) {
@@ -155,31 +189,38 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		return row
 	}
 
-	fromObject(obj: Record<string, unknown>) {
+	private fromObject(obj: Record<string, unknown>) {
 		for (const key in obj) {
 			this.__set__(key, obj[key])
 		}
 	}
 
 	/**
+	 * Perform validation on the record
+	 */
+	async validate(throwOnError = false) {
+		// Call before validation hooks
+		await this.callHooks("before", "validation")
+
+		await Promise.all(
+			this.class<typeof Base>().validators.map(
+				(validator) => validator.validate(this as DefaultBase, throwOnError),
+			),
+		)
+
+		// Call after validation hooks
+		await this.callHooks("before", "validation")
+	}
+
+	/**
 	 * Saves the record to the database
 	 */
-	async save() {
-		// Call before save hooks
-		await this.callHooks("before", "save")
-
-		let callAfterHook = true
-
+	async save(validate = true): Promise<boolean> {
 		// Perform an insert if record hasn't been persisted yet
 		if (!this.isPersisted) {
-			await this.insert()
+			return this.insert(validate)
 		} else { // Perform update if record has already been persisted
-			callAfterHook = await this.update()
-		}
-
-		// Call after save hooks
-		if (callAfterHook) {
-			await this.callHooks("after", "save")
+			return this.update()
 		}
 	}
 
@@ -188,7 +229,14 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	 *
 	 * @internal
 	 */
-	async insert() {
+	async insert(validate = true): Promise<boolean> {
+		if (validate) await this.validate()
+
+		if (this.errors.any()) return false
+
+		// Call before save hooks
+		await this.callHooks("before", "save")
+
 		// Call before create hooks
 		await this.callHooks("before", "create")
 
@@ -209,11 +257,13 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		// Call after create hooks
 		await this.callHooks("after", "create")
 
+		// Reload record to get timestamp updates and other generated values from the database
+		await this.reload()
+
 		// Reset changes
 		this.__set__(privateAttributes.changes, new Changes(this as unknown as TRecord))
 
-		// Reload record to get timestamp updates and other generated values from the database
-		await this.reload()
+		return true
 	}
 
 	/**
@@ -221,7 +271,14 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	 *
 	 * @internal
 	 */
-	async update() {
+	async update(validate = true): Promise<boolean> {
+		if (validate) await this.validate()
+
+		if (this.errors.any()) return false
+
+		// Call before save hooks
+		await this.callHooks("before", "save")
+
 		// Call before update hooks
 		await this.callHooks("before", "update")
 
@@ -231,17 +288,25 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 			return false
 		}
 
+		// Set timestamp if model has one
+		if (this["updatedAt" as keyof this]) {
+			row["updated_at"] = new Date()
+		}
+
 		// Do update
-		await this.query.update(row)
+		await this.whereThis.update(row as ConstructorArgs<TRecord>)
 
 		// Call after update hooks
 		await this.callHooks("after", "update")
 
-		// Reset changes
-		this.__set__(privateAttributes.changes, new Changes(this as unknown as TRecord))
+		// Call after save hooks
+		await this.callHooks("after", "save")
 
 		// Reload record to get timestamp updates and other generated values from the database
 		await this.reload()
+
+		// Reset changes
+		this.__set__(privateAttributes.changes, new Changes(this as unknown as TRecord))
 
 		return true
 	}
@@ -254,20 +319,21 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	 * if no record is found on reload it will mark this record as no longer persisted
 	 */
 	async reload() {
-		const RecordClass = this.class<typeof Base>()
-		const primaryIdentifier = RecordClass.primaryIdentifier as ModelAttributes<TRecord>
-
-		// Use findBy so we don't throw on not found
-		const newRecord = await RecordClass.findBy<TRecord>({
-			[primaryIdentifier]: (this as unknown as TRecord)[primaryIdentifier],
-		} as ConstructorArgs<TRecord>)
+		const newRecord = await this.whereThis.first()
 
 		if (!newRecord) {
 			// If it can no longer be found in the DB, mark isPersisted as false
 			this.__set__(privateAttributes.isPersisted, false)
 		} else {
-			Object.assign(this, newRecord)
+			this.fromRow(newRecord as Awaited<ResolveTableType<TRecord, "base">>)
 		}
+
+		return this
+	}
+
+	async destroy() {
+		await this.whereThis.destroy()
+		this.__set__(privateAttributes.isPersisted, false)
 	}
 
 	get changes() {
@@ -296,11 +362,19 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		return this.class<typeof Base>().hooks.callHooks<Base<TRecord>>(this)
 	}
 
+	/**
+	 * Errors Map, available with errors after validation
+	 */
+	get errors() {
+		return this.__send__(privateAttributes.errors) as ValidationErrors<TRecord>
+	}
+
 	static new<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord> = {}) {
 		let record = new this() as TRecord
 
 		record.__set__(privateAttributes.changes, new Changes(record))
 		record.__set__(privateAttributes.isPersisted, false)
+		record.__set__(privateAttributes.errors, new ValidationErrors())
 
 		record = Changes.proxifyModel(record)
 

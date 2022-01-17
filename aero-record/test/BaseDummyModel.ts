@@ -1,8 +1,7 @@
 import AeroRecord from "../lib/AeroRecord"
-import Hooks from "../lib/Hooks"
 import Base from "../lib/Base"
 
-export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroRecord.Base<TRecord> {
+export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroRecord.Base<BaseDummyModel<TRecord>> {
 	id!: string
 
 	createdAt?: Date
@@ -10,9 +9,12 @@ export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroR
 
 	name?: string
 	email?: string
-	password?: string
+
+	@AeroRecord.Decorators.hasEncryptedPassword()
+		password?: string
 
 	calledSetId = 0
+	@AeroRecord.Decorators.before("create")
 	setId() {
 		this.id = "an-id"
 		this.calledSetId += 1
@@ -24,9 +26,5 @@ export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroR
 			this.calledSendConfirmationEmail += 1
 			resolve(undefined)
 		}, 20))
-	}
-
-	static reset() {
-		this.hooks = new Hooks()
 	}
 }

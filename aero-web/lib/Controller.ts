@@ -38,15 +38,15 @@ export default abstract class Controller {
 		this.params = new Parameters(this.req)
 	}
 
-	render(templateName: string) {
-		const layoutName = `layouts/${(this.constructor as typeof Controller).layout}`
-		const pageName = `pages/${this.controllerName.replace("_", "/")}/${templateName}`
+	async render(templateName: string) {
+		const layoutName = `/layouts/${(this.constructor as typeof Controller).layout}`
+		const pageName = `/pages/${this.controllerName.replace("_", "/")}/${templateName}`
 
 		this.res.type("text/html")
 
-		return this.viewEngine.render(layoutName, {
+		return await this.viewEngine.render(layoutName, {
 			...this.viewLocals,
-			yield: this.viewEngine.render(
+			yield: await this.viewEngine.render(
 				pageName,
 				this.viewLocals,
 			),

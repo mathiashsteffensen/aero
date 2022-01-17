@@ -1,5 +1,5 @@
 {
-  "extends": "../shared/tsconfig.json",
+  "extends": "../aero-support/tsconfig.json",
   "compilerOptions": {
     "rootDir": "./lib",
     "outDir": "./dist/js",

@@ -1,34 +1,71 @@
 import { Knex } from "knex"
+import DbRecordArr = Knex.DbRecordArr
+import CompositeTableType = Knex.CompositeTableType
+import ResolveTableType = Knex.ResolveTableType
 
 import AeroRecord from "./AeroRecord"
 import Base from "./Base"
+import * as Helpers from "./Helpers"
+
 import { ConstructorArgs } from "./types"
 
 type QueryParams<TRecord extends Base<TRecord>> = ConstructorArgs<TRecord> | string;
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export default class Query<TRecord extends Base<any>> {
-	private _state: Knex.QueryBuilder<TRecord>
+export default class Query<TRecord extends Base<TRecord>> {
+	#RecordClass: typeof Base
+	#state: Knex.QueryBuilder<TRecord>
 
-	constructor(tableName: string) {
+	constructor(RecordClass: typeof Base, tableName: string) {
+		this.#RecordClass = RecordClass
+
 		if (!AeroRecord.connection) {
 			throw new Error("Can't initialize query before establishing connection to database")
 		}
 
-		this._state = AeroRecord.connection.knex<TRecord>(tableName)
+		this.#state = AeroRecord.connection.knex<TRecord>(tableName)
 	}
 
-	where(params: QueryParams<TRecord>) {
-		this._state = this._state.where(params)
+	/**
+	 * Duplicate a method from the knex instance
+	 *
+	 * @internal
+	 */
+	private knexDup<TArgs>(methodName: keyof Knex.QueryBuilder) {
+		return (args: TArgs) => {
+			if (typeof args === "object") {
+				args = Helpers.snakeCaseKeys(args as Record<string, unknown>) as TArgs
+			}
 
-		return this
+			this.#state = (this.#state[methodName] as (args: TArgs) => Knex.QueryBuilder)(args)
+			return this
+		}
 	}
 
-	static where<TRecord extends Base<any>>(tableName: string, params: QueryParams<TRecord> | string) {
-		(new Query<TRecord>(tableName)).where(params)
+
+	where = this.knexDup<QueryParams<TRecord>>("where")
+	whereNot = this.knexDup<QueryParams<TRecord>>("whereNot")
+
+	async first() {
+		return this.#RecordClass.fromRow(await this.#state.first())
 	}
 
-	async first(limit = 1) {
-		return this._state.limit(limit)
+	async all(): Promise<Array<TRecord>> {
+		return (await this.#state)
+			.map(
+				(row: Awaited<ResolveTableType<TRecord>>) => this.#RecordClass.fromRow<TRecord>(row),
+			)
 	}
+
+	async update(args: ConstructorArgs<TRecord>) {
+		return this.#state.update(
+			args as TRecord extends CompositeTableType<unknown> ? ResolveTableType<TRecord, "update"> : DbRecordArr<TRecord>,
+		)
+	}
+
+	async destroy() {
+		await this.#state.del()
+	}
+
+	toString() { return this.#state.toString() }
+	toSQL() { return this.#state.toSQL() }
 }

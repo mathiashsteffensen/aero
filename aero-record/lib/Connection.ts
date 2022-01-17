@@ -4,6 +4,7 @@ import knex, { Knex } from "knex"
 
 import * as Errors from "./Errors"
 import AeroRecord from "./AeroRecord"
+import QueryLogger from "./QueryLogger"
 
 /**
  * @internal
@@ -25,7 +26,6 @@ export default class Connection {
 	 * @param connectionName - name of the connection to establish
 	 */
 	establishConnection(connectionName: string) {
-
 		if (this.config[connectionName] == undefined) {
 			throw new Errors.ConnectionError(`No configuration found for connection named ${connectionName}`)
 		}
@@ -33,8 +33,7 @@ export default class Connection {
 		try {
 			this.knex = knex(this.config[connectionName] as Knex.Config)
 
-			this.knex.on("query", AeroRecord.logger.debug)
-			this.knex.on("query-error", (data) => AeroRecord.logger.warn(data))
+			new QueryLogger(this.knex)
 		} catch (e) {
 			if (e instanceof Error) {
 				const wrappedErr = new Errors.ConnectionError(e.message)

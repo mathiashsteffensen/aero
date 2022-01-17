@@ -1,25 +1,37 @@
 import Worker from "./Worker"
+import AeroJob from "./AeroJob"
 
 export default class Runner {
 	#running = false
-	WorkerClasses: Array<typeof Worker>
+	WorkerClasses = new Map<string, Array<typeof Worker>>()
 
 	constructor(WorkerClasses: Array<typeof Worker>) {
-		this.WorkerClasses = WorkerClasses
+		for (const WorkerClass of WorkerClasses) {
+			if (!this.WorkerClasses.has(WorkerClass.queue)) {
+				this.WorkerClasses.set(WorkerClass.queue, [])
+			}
+
+			this.WorkerClasses.get(WorkerClass.queue)?.push(WorkerClass)
+		}
 	}
 
-	async run() {
-		if (!this.#running) {
-			this.#running = true
-			await Promise.all(
-				this.WorkerClasses.map(async (WorkerClass) => {
-					await WorkerClass.queue.process(WorkerClass.name, async ({ data }) => {
-						const worker = new WorkerClass()
+	run() {
+		if (this.#running) return
 
-						await worker.perform(data)
-					})
-				}),
-			)
+		this.#running = true
+
+		for (const [queue, WorkerClasses] of this.WorkerClasses) {
+			Promise.all(
+				WorkerClasses.map(
+					async (WorkerClass) => {
+						AeroJob.config.driver.process(queue, WorkerClass.name,async (args) => {
+							const worker = new WorkerClass()
+
+							await worker.perform(args)
+						})
+					},
+				),
+			).catch(AeroJob.logger.fatal)
 		}
 	}
 }
