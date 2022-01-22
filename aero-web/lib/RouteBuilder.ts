@@ -119,7 +119,7 @@ export default class RouteBuilder {
 			this.get(`${resourceName}/new`, `${controllerName}#new`, { as: `new_${as}` })
 		}
 		if (!options.except?.includes("create")) {
-			this.post(resourceName, `${controllerName}#create`, { as })
+			this.post(resourceName, `${controllerName}#create`, { as: `create_${as}` })
 		}
 
 		// Editing an existing resource
@@ -127,7 +127,7 @@ export default class RouteBuilder {
 			this.get(`${resourceName}/:id/edit`, `${controllerName}#edit`, { as: `edit_${as}` })
 		}
 		if (!options.except?.includes("update")) {
-			this.put(`${resourceName}/:id`, `${controllerName}#update`, { as })
+			this.put(`${resourceName}/:id`, `${controllerName}#update`, { as: `update_${as}` })
 		}
 
 		// Viewing a resource

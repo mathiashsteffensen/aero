@@ -6,4 +6,6 @@ export class ConnectionError extends AeroRecordError {}
 
 export class RecordNotFound extends AeroRecordError {}
 
-export class RecordNotUnique extends AeroRecordError {}
+export class RecordInvalid extends AeroRecordError {}
+
+export class RecordNotUnique extends RecordInvalid {}

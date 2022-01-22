@@ -1,3 +1,4 @@
+import i18n from "i18n"
 import pino from "pino"
 
 import { Cache } from "@aero/aero-support/lib/interfaces"
@@ -12,16 +13,9 @@ export default class Config {
 	controllerDir = "app/controllers"
 	staticDir = "public"
 
-	// View config
-	viewDir = "app/views"
-	set viewEngine(newValue: ViewEngine) {
-		Aero.application.viewEngine = newValue
-	}
-	get viewEngine() { return Aero.application.viewEngine }
-
 	// Log config
 	get logLevel() { return Aero.logger.level }
-	set logLevel(newValue: pino.Level | string) {
+	set logLevel(newValue: pino.Level | "silent") {
 		Aero.logger.level = newValue
 	}
 
@@ -30,4 +24,21 @@ export default class Config {
 		Aero.cache = newCache
 	}
 	get cache() { return Aero.cache }
+
+	// I18n config
+	i18n = i18n.configure
+
+	// View config
+	viewDir = "app/views"
+	set viewEngine(newValue: ViewEngine) {
+		Aero.application.viewEngine = newValue
+	}
+	get viewEngine() { return Aero.application.viewEngine }
+
+	// Form config
+	aeroForm = {
+		inputClass: "input input-primary",
+		buttonClass: "btn btn-primary",
+		errorFeedbackClass: "alert alert-danger",
+	}
 }

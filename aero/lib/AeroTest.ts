@@ -53,5 +53,6 @@ export default class AeroTest {
 	#application: Application
 	constructor(application: Application) {
 		this.#application = application
+
 	}
 }

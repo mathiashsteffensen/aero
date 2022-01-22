@@ -2,8 +2,8 @@ import { execSync } from "child_process"
 import * as esbuild from "esbuild"
 import { sassPlugin } from "esbuild-sass-plugin"
 import assetsManifestPlugin from "esbuild-plugin-assets-manifest"
-
 import fs from "fs"
+
 import Aero from "./Aero"
 
 /**
@@ -14,7 +14,7 @@ export interface IAssetPipeline {
     string,
     Record<string, string>
   >
-  compile(aero: typeof Aero): Promise<void>
+  compile(): Promise<void>
 }
 
 /**
@@ -36,14 +36,14 @@ export default class AssetPipeline implements IAssetPipeline {
 	/**
 	 * Compiles the assets
 	 */
-	async compile(aero: typeof Aero) {
+	async compile() {
 		try {
 			// Clean output directory
-			execSync("rm -rf ./public/*")
+			execSync("rm -rf ./public/*", { timeout: 50 })
 
 			// Compile assets
 			await esbuild.build({
-				minify: aero.env.isProduction(), // Only minify in production
+				minify: Aero.env.isProduction(), // Only minify in production
 				metafile: true, // Generate a metafile for the assetsManifestPlugin
 				entryPoints: [
 					"app/assets/scripts/application.ts",
@@ -63,11 +63,11 @@ export default class AssetPipeline implements IAssetPipeline {
 
 			this.assetManifest = JSON.parse(
 				fs.readFileSync(
-					aero.root.join("public/manifest.json"),
+					Aero.root.join("public/manifest.json"),
 				).toString(),
 			)
 		} catch (e) {
-			aero.logger.error(e)
+			Aero.logger.error(e)
 		}
 	}
 }

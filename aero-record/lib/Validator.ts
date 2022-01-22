@@ -1,6 +1,6 @@
 import Base from "./Base"
 
-import { RecordNotUnique } from "./Errors"
+import { RecordInvalid, RecordNotUnique } from "./Errors"
 import { ConstructorArgs, ModelAttributes, ValidatorOptions } from "./types"
 
 export default class Validator<TRecord extends Base<TRecord>> {
@@ -27,6 +27,16 @@ export default class Validator<TRecord extends Base<TRecord>> {
 			}
 		}
 
+		if (this.options.present) {
+			const error = await this.#validatePresent(instance)
+
+			if (error) {
+				if (throwOnError) throw error
+
+				errors.push(error)
+			}
+		}
+
 		instance.errors.set(this.property as keyof TRecord, errors)
 	}
 
@@ -43,5 +53,13 @@ export default class Validator<TRecord extends Base<TRecord>> {
 		}
 
 		return undefined
+	}
+
+	#validatePresent(instance: TRecord) {
+		if (!instance[this.property as keyof TRecord]) {
+			return new RecordInvalid(`Missing required property ${this.property}`)
+		} else {
+			return undefined
+		}
 	}
 }

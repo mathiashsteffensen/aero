@@ -1,5 +1,3 @@
-import { BaseLogger } from "pino"
-
 import AeroWeb, { Server } from "@aero/aero-web"
 import { ViewEngine } from "@aero/aero-web/dist/typings/types"
 import AeroRecord from "@aero/aero-record"
@@ -9,7 +7,6 @@ import ENV from "./ENV"
 import Aero from "./Aero"
 import AssetPipeline, { IAssetPipeline } from "./AssetPipeline"
 import ViewHelpers from "./ViewHelpers"
-import Root from "./Root"
 
 export interface IApplication {
 	configure: (config: Config) => void
@@ -31,21 +28,12 @@ export interface IApplication {
  * With no custom configuration, this is all that is needed to create an Aero application
  */
 export default abstract class Application implements IApplication {
-	config: Config
 	env = new ENV()
-	root: Root
-	logger: BaseLogger
 	viewEngine: ViewEngine = new AeroWeb.ViewEngines.EJS()
 	assetPipeline: IAssetPipeline = new AssetPipeline()
 	controllers = new AeroWeb.Controllers()
 	viewHelpers!: ViewHelpers
 	server!: Server
-
-	protected constructor(aero: typeof Aero) {
-		this.config = aero.config
-		this.root = aero.root
-		this.logger = aero.logger
-	}
 
 	/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
 	/**
@@ -85,32 +73,32 @@ export default abstract class Application implements IApplication {
 	 *		async initialize(aero) {
 	 *			await super.initialize(aero)
 	 *
-	 * 			// Flush cache before initializing
+	 * 			// Flush cache after initializing
 	 *     	await this.config.cache.flush()
 	 *		}
 	 * }
 	 * ```
 	 */
-	async initialize(aero: typeof Aero) {
-		await import(aero.root.join("config", "environments", aero.env.toString()))
+	async initialize() {
+		await import(Aero.root.join("config", "environments", Aero.env.toString()))
 
 		this.server = new AeroWeb.Server({
-			logger: this.logger,
-			staticDir: this.root.join(this.config.staticDir),
-			staticDirPathPrefix: `/${this.config.staticDir}/`,
+			logger: Aero.logger,
+			staticDir: Aero.root.join(Aero.config.staticDir),
+			staticDirPathPrefix: `/${Aero.config.staticDir}/`,
 		})
 
 		await this.controllers.load(
-			this.root.join("app/controllers"),
-			this.logger.fatal,
+			Aero.root.join("app/controllers"),
+			Aero.logger.fatal,
 		)
 
 		await this.viewEngine.load(
-			this.root.join(this.config.viewDir),
+			Aero.root.join(Aero.config.viewDir),
 		)
 
-		await this.assetPipeline.compile(aero).then(() => {
-			this.logger.info("Frontend assets compiled ...")
+		await this.assetPipeline.compile().then(() => {
+			Aero.logger.info("Frontend assets compiled ...")
 			this.viewHelpers = new ViewHelpers(this.assetPipeline.assetManifest)
 		})
 	}
@@ -135,17 +123,17 @@ export default abstract class Application implements IApplication {
 	 * ```
 	 */
 	async initDB() {
-		AeroRecord.logger = this.logger
+		AeroRecord.logger = Aero.logger
 		AeroRecord.establishConnection(
 			this.env.toString(),
-			this.root.join(this.config.databaseFile),
+			Aero.root.join(Aero.config.databaseFile),
 		)
 	}
 
 	start(version: string) {
-		this.logger.info("Starting Aero application")
-		this.logger.info("Environment: %s", this.env.toString())
-		this.logger.info("Version: %s", version)
+		Aero.logger.info("Starting Aero application")
+		Aero.logger.info("Environment: %s", this.env.toString())
+		Aero.logger.info("Version: %s", version)
 
 		return this.server.start()
 	}

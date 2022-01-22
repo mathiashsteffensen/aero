@@ -25,10 +25,7 @@ export default class Server {
 		this.logger = options.logger
 
 		this.fastify = fastify({
-			logger: {
-				...this.logger,
-				prettyPrint: true,
-			},
+			logger: false,
 			disableRequestLogging: true,
 			genReqId: cuid,
 		})
@@ -45,7 +42,7 @@ export default class Server {
 			request.startAt = Date.now()
 			done()
 		})
-		this.fastify.addHook("onResponse", (request, _reply, done) => {
+		this.fastify.addHook("onResponse", (request, reply, done) => {
 			const timeTaken = Date.now() - request.startAt
 
 			this.logger.info({
@@ -53,16 +50,21 @@ export default class Server {
 				ms: timeTaken,
 				method: request.method,
 				path: request.url,
+				status: reply.statusCode,
 			})
 			done()
 		})
 
 		// Add error logging
-		this.fastify.addHook("onError", (request, _reply, err, done) => {
+		this.fastify.addHook("onError", (request, reply, err, done) => {
+			const timeTaken = Date.now() - request.startAt
+
 			this.logger.info({
 				reqId: request.id,
+				ms: timeTaken,
 				method: request.method,
 				path: request.url,
+				status: reply.statusCode,
 				error: err,
 			})
 			done()

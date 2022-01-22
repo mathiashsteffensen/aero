@@ -10,7 +10,6 @@ import Application from "./Application"
 import Root from "./Root"
 import Config from "./Config"
 import ENV from "./ENV"
-import Logger from "./Logger"
 import ViewHelpers from "./ViewHelpers"
 import FormHelpers from "./FormHelpers"
 
@@ -53,7 +52,7 @@ export default abstract class Aero {
 	 * Aero.logger.info("This is an info level message")
 	 * ```
 	 */
-	static logger = new Logger()
+	static logger = new AeroSupport.Logger()
 
 	/**
 	 * Construct paths from the root of your application
@@ -107,12 +106,19 @@ export default abstract class Aero {
 	static async initialize(applicationPath = "config/Application") {
 		try {
 			const ApplicationClass = (await import(this.root.join(applicationPath))).default
-			this.application = new ApplicationClass(this)
+			this.application = new ApplicationClass()
 
 			// Configure and initialize Aero.Application instance
 			this.application.configure(this.config)
-			await this.application.initialize(this)
+			await this.application.initialize()
 			await this.application.initDB()
+
+			this.config.i18n({
+				directory: Aero.root.join("config/locales"),
+				api: {
+					"__": "t",
+				},
+			})
 
 			// Load the routes
 			this.routes = new AeroWeb.Routes(

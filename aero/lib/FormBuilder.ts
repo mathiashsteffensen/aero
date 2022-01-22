@@ -13,31 +13,46 @@ export default class FormBuilder<TRecord extends Base<TRecord>> {
 	constructor(record: TRecord, options: FormBuilderOptions) {
 		this.record = record
 
-		options.path = options.path || Aero.routes.make[this.recordTableName]?.() || "/"
+		options.path = options.path || this.inferredPathFromRecord || "/"
 		options.method = options.method || "POST"
 
 		this.options = options
 	}
 
-	get recordTableName() {
+	private get recordTableName() {
 		return this.record.class<typeof Base>().tableName
 	}
 
+	private get inferredPathFromRecord() {
+		if (this.record.isNewRecord) {
+			return Aero.routes.make[`create_${this.recordTableName}`]?.()
+		} else {
+			return Aero.routes.make[`update_${this.recordTableName}`]?.()
+		}
+	}
+
+
 	input(attribute: string, type: HTMLInputElement["type"] = "text") {
 		const id = `${pluralize(this.recordTableName, 1)}[${attribute}]`
+		const errors = this.record.errors.get(attribute as keyof TRecord) || []
 
 		this.inputs.push(`
 			<div>
 				<label for="${id}">
 					${attribute[0]?.toUpperCase()}${attribute.slice(1)}
 				</label>
-				<input name="${id}" id="${id}" type="${type}" />
+				<input class="${Aero.config.aeroForm.inputClass}" name="${id}" id="${id}" type="${type}" />
+				${errors.length !== 0 ? `<div class="${Aero.config.aeroForm.errorFeedbackClass}">
+					${errors.map((err) => `<span>
+						${err.message}
+					</span>`)}
+				</div>` : ""}
 			</div>
 		`)
 	}
 
 	button(text: string) {
-		this.inputs.push(`<button>${text}</button>`)
+		this.inputs.push(`<button class="${Aero.config.aeroForm.buttonClass}">${text}</button>`)
 	}
 
 	render() {
