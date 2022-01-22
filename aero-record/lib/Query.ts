@@ -46,7 +46,9 @@ export default class Query<TRecord extends Base<TRecord>> {
 	whereNot = this.knexDup<QueryParams<TRecord>>("whereNot")
 
 	async first() {
-		return this.#RecordClass.fromRow(await this.#state.first())
+		const row = await this.#state.first()
+
+		return row ? this.#RecordClass.fromRow(row) : undefined
 	}
 
 	async all(): Promise<Array<TRecord>> {

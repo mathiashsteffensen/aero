@@ -34,14 +34,15 @@ export default class QueryLogger {
 					sql: data.sql,
 					bindings: data.bindings,
 				},
-				`AeroRecord query failed, processed for ${Date.now() - this.#getQuery(data).start}ms`,
+				`AeroRecord query failed, processed for ${Date.now() - (this.#getQuery(data)?.start || 0)}ms`,
 			)
 
 			this.#executingQueries.delete(this.#extractId(data))
 		})
 
 		knex.on("query-response", (_response, data: QueryEventData) => {
-			const processingTime = Date.now() - this.#getQuery(data).start
+			const start = this.#getQuery(data)?.start || 0
+			const processingTime = Date.now() - start
 
 			AeroRecord.logger.debug(
 				{
@@ -61,6 +62,6 @@ export default class QueryLogger {
 	}
 
 	#getQuery(data: QueryEventData) {
-		return this.#executingQueries.get(this.#extractId(data)) as { start: number }
+		return this.#executingQueries.get(this.#extractId(data)) as { start: number } | undefined
 	}
 }
