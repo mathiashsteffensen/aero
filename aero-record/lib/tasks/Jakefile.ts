@@ -3,13 +3,17 @@ import path from "path"
 
 import "jake"
 import ejs from "ejs"
+import { Knex } from "knex"
 
 import MigrationExecutor from "../MigrationExecutor"
+import Connection from "../Connection"
 
 // Make sure tasks exits, see https://github.com/jakejs/jake/issues/271
 jake.addListener("complete", () => {
 	setTimeout(process.exit, 20)
 })
+
+const Task = (name: string) => (jake.Task[name as keyof typeof jake.Task] as { invoke: (...args: Array<unknown>) => void })
 
 const sh = (cmd: string) => new Promise(resolve => jake.exec([cmd], () => resolve(undefined)))
 
@@ -93,5 +97,16 @@ namespace("db", () => {
 		const executor = new MigrationExecutor(migrationDir, configFile)
 
 		await executor.printCurrentMigrationVersion()
+	})
+
+	desc("Setup your database (only supports PostgresSQL)")
+	task("setup", async (migrationDir = "./db/migrations", configFile = "./config/database.yml") => {
+		const config = (new Connection(configFile)).config[process.env.NODE_ENV || "development"] as Knex.Config
+		const database = (config?.connection as Knex.PgConnectionConfig)?.database
+
+		await sh(`psql -d postgres -c "CREATE DATABASE ${database};"`)
+		await sh(`psql -d ${database} -c "CREATE SCHEMA aero_migrations_schema;"`)
+
+		await Task("db:migrate").invoke(migrationDir, configFile)
 	})
 })
