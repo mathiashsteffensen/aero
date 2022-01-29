@@ -1,6 +1,6 @@
 import { expect } from "chai"
 
-import Hooks from "../lib/Hooks"
+import Hooks from "../lib/model/Hooks"
 import { HookOptions, ModelMethods } from "../lib/types"
 import Base from "../lib/Base"
 

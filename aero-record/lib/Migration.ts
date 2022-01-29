@@ -1,5 +1,5 @@
 import { Knex } from "knex"
-import TableBuilder from "./schema-builders/TableBuilder"
+import TableBuilder from "./TableBuilder"
 
 export interface IMigration {
 	up: () => void

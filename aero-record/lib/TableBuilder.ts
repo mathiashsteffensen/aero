@@ -1,7 +1,7 @@
 import { Knex } from "knex"
 import Raw = Knex.Raw
 
-import { ColumnOptions, ColumnType } from "../types"
+import { ColumnOptions, ColumnType } from "./types"
 
 export default class TableBuilder {
 	/**
@@ -35,6 +35,10 @@ export default class TableBuilder {
 
 		if (Object.keys(columnOptions).includes("default")) {
 			column.notNullable().defaultTo(columnOptions.default as Raw<unknown>)
+		}
+
+		if (columnOptions.null === false) {
+			column.notNullable()
 		}
 	}
 

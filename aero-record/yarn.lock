@@ -29,7 +29,7 @@ __metadata:
     knex: ^0.95.14
     mocha: ^9.1.3
     pg: ^8.7.1
-    pino: ^7.6.0
+    pino: ^7.6.4
     pino-pretty: ^7.3.0
     pluralize: ^8.0.0
     ts-node: ^10.4.0
@@ -43,6 +43,8 @@ __metadata:
 "@aero/aero-support@portal:/home/mathias/code/aero/aero-support::locator=%40aero%2Faero-record%40workspace%3A.":
   version: 0.0.0-use.local
   resolution: "@aero/aero-support@portal:/home/mathias/code/aero/aero-support::locator=%40aero%2Faero-record%40workspace%3A."
+  dependencies:
+    pino: ^7.6.4
   languageName: node
   linkType: soft
 
@@ -1360,13 +1362,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastify-warning@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "fastify-warning@npm:0.2.0"
-  checksum: c19ebccf54a3122877d2248400772ca98bacbabdf97826211ede29246c640d47431a2eebed1f52f9421139ed5e52e42d3bd4aefc46e27b6f34add3507529fd97
-  languageName: node
-  linkType: hard
-
 "fastq@npm:^1.6.0":
   version: 1.13.0
   resolution: "fastq@npm:1.13.0"
@@ -2587,15 +2582,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pino@npm:^7.6.0":
-  version: 7.6.0
-  resolution: "pino@npm:7.6.0"
+"pino@npm:^7.6.4":
+  version: 7.6.4
+  resolution: "pino@npm:7.6.4"
   dependencies:
     fast-redact: ^3.0.0
-    fastify-warning: ^0.2.0
     on-exit-leak-free: ^0.2.0
     pino-abstract-transport: v0.5.0
     pino-std-serializers: ^4.0.0
+    process-warning: ^1.0.0
     quick-format-unescaped: ^4.0.3
     real-require: ^0.1.0
     safe-stable-stringify: ^2.1.0
@@ -2603,7 +2598,7 @@ __metadata:
     thread-stream: ^0.13.0
   bin:
     pino: bin.js
-  checksum: 1ac1a38967a096ff9a62b6b6c573dc2072bdb7ccc97571a218e87d5bae84e7da97cec319c0a5835048a72ba4049fbf30ce245ce2a3e0a4a5a32bac6303e2201f
+  checksum: 0703361f03a04bc572085927d8c81f4b70911c8dfe1924524ee408a31ce15c6f189042f0fc0da56ff507691cfb9e184158bac6ff6a276643f6a9926b8eb3c969
   languageName: node
   linkType: hard
 
@@ -2648,6 +2643,13 @@ __metadata:
   version: 1.2.1
   resolution: "prelude-ls@npm:1.2.1"
   checksum: cd192ec0d0a8e4c6da3bb80e4f62afe336df3f76271ac6deb0e6a36187133b6073a19e9727a1ff108cd8b9982e4768850d413baa71214dd80c7979617dca827a
+  languageName: node
+  linkType: hard
+
+"process-warning@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "process-warning@npm:1.0.0"
+  checksum: c708a03241deec3cabaeee39c4f9ee8c4d71f1c5ef9b746c8252cdb952a6059068cfcdaf348399775244cbc441b6ae5e26a9c87ed371f88335d84f26d19180f9
   languageName: node
   linkType: hard
 

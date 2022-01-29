@@ -4,15 +4,13 @@ import pluralize from "pluralize"
 
 import AeroRecord from "./AeroRecord"
 import BasicObject from "./BasicObject"
-import Changes from "./Changes"
 import * as Errors from "./Errors"
 import * as Helpers from "./Helpers"
-import Hooks from "./Hooks"
+import { Changes, Hooks, ValidationErrors, Validator } from "./model"
 import Query from "./Query"
-import Validator from "./Validator"
-import ValidationErrors from "./ValidationErrors"
 
-import { ConstructorArgs, HookType, ModelAttributes, QueryResult } from "./types"
+import { ConstructorArgs, DEFAULT_SAVE_OPTIONS, HookType, ModelAttributes, QueryResult, SaveOptions } from "./types"
+
 
 const privateAttributes = {
 	isPersisted: Symbol("isPersisted"),
@@ -133,7 +131,7 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 
 	static async findBy<TRecord extends Base<TRecord>>(params: ConstructorArgs<TRecord>): Promise<QueryResult<TRecord>> {
 		const record = await this.where(params).first()
-		if (!record[this.primaryIdentifier]) return undefined
+		if (!record) return undefined
 
 		record.__set__(privateAttributes.changes, new Changes(record))
 
@@ -215,12 +213,12 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	/**
 	 * Saves the record to the database
 	 */
-	async save(validate = true): Promise<boolean> {
+	async save(options = DEFAULT_SAVE_OPTIONS): Promise<boolean> {
 		// Perform an insert if record hasn't been persisted yet
 		if (!this.isPersisted) {
-			return this.insert(validate)
+			return this.insert(options)
 		} else { // Perform update if record has already been persisted
-			return this.update()
+			return this.update(options)
 		}
 	}
 
@@ -229,10 +227,17 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	 *
 	 * @internal
 	 */
-	async insert(validate = true): Promise<boolean> {
-		if (validate) await this.validate()
+	async insert(options = DEFAULT_SAVE_OPTIONS): Promise<boolean> {
+		options = {
+			...DEFAULT_SAVE_OPTIONS,
+			...options,
+		}
 
-		if (this.errors.any()) return false
+		if (options.validate) await this.validate(options.throwOnError)
+
+		if (this.errors.any()) {
+			return false
+		}
 
 		// Call before save hooks
 		await this.callHooks("before", "save")
@@ -261,7 +266,7 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		await this.reload()
 
 		// Reset changes
-		this.__set__(privateAttributes.changes, new Changes(this as unknown as TRecord))
+		this.__set__(privateAttributes.changes, new AeroRecord.Model.Changes(this as unknown as TRecord))
 
 		return true
 	}
@@ -271,8 +276,13 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	 *
 	 * @internal
 	 */
-	async update(validate = true): Promise<boolean> {
-		if (validate) await this.validate()
+	async update(options: SaveOptions = DEFAULT_SAVE_OPTIONS): Promise<boolean> {
+		options = {
+			...DEFAULT_SAVE_OPTIONS,
+			...options,
+		}
+
+		if (options.validate) await this.validate(options.throwOnError)
 
 		if (this.errors.any()) return false
 
@@ -306,7 +316,7 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 		await this.reload()
 
 		// Reset changes
-		this.__set__(privateAttributes.changes, new Changes(this as unknown as TRecord))
+		this.__set__(privateAttributes.changes, new AeroRecord.Model.Changes(this as unknown as TRecord))
 
 		return true
 	}

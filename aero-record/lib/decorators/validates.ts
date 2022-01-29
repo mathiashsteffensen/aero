@@ -1,12 +1,12 @@
 import Base from "../Base"
-import Validator from "../Validator"
+import Validator from "../model/Validator"
 
-import { AttributeDecorator, ValidatorOptions } from "../types"
+import { ValidatorOptions } from "../types"
 
-export const validates = (options: ValidatorOptions): AttributeDecorator => {
+export const validates = (options: ValidatorOptions): PropertyDecorator => {
 	return (target, key) => {
-		const Class = target.class<typeof Base>()
+		const Class = target.constructor as typeof Base
 
-		Class.validators.push(new Validator(Class, <string>key, options))
+		Class.validators.push(new Validator(<string>key, options))
 	}
 }

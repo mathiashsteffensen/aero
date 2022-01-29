@@ -1,7 +1,7 @@
-import Base from "./Base"
-import * as Errors from "./Errors"
+import Base from "../Base"
+import * as Errors from "../Errors"
 
-import { HookAction, HookOptions, HookState, HookType, ModelMethods } from "./types"
+import { HookAction, HookOptions, HookState, HookType, ModelMethods } from "../types"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**

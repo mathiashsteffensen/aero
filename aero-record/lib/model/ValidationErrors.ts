@@ -1,13 +1,12 @@
-import Base from "./Base"
+import Base from "../Base"
 
 export default class ValidationErrors<TRecord extends Base<TRecord>> extends Map<keyof TRecord, Array<Error>> {
 	any() {
-		let result = false
 		for (const [_key, errors] of this) {
-			if(errors.length !== 0) result = true
+			if(errors.length !== 0) return true
 		}
 
-		return result
+		return false
 	}
 
 	asJSON() {

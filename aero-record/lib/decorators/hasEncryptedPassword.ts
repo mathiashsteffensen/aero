@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt"
 
 import Base from "../Base"
-import { AttributeDecorator } from "../types"
 
 const encryptPassword = (key: string | symbol | number) => {
 	return async <TRecord extends Base<TRecord>>(instance: TRecord) => {
@@ -12,9 +11,9 @@ const encryptPassword = (key: string | symbol | number) => {
 		instance.__set__(key, passwordHash)
 	}
 }
-export const hasEncryptedPassword = (): AttributeDecorator => {
+export const hasEncryptedPassword = (): PropertyDecorator => {
 	return (target, attribute) => {
-		const Class = target.class<typeof Base>()
+		const Class = target.constructor as typeof Base
 
 		Class.hooks.before("create", encryptPassword(attribute))
 		Class.hooks.before(

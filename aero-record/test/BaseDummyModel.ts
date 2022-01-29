@@ -15,16 +15,20 @@ export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroR
 
 	calledSetId = 0
 	@AeroRecord.Decorators.before("create")
-	setId() {
+	async setId() {
 		this.id = "an-id"
 		this.calledSetId += 1
+		await this.sleep(10)
+
 	}
 
 	calledSendConfirmationEmail = 0
-	sendConfirmationEmail() {
-		return new Promise(resolve => setTimeout(() => {
-			this.calledSendConfirmationEmail += 1
-			resolve(undefined)
-		}, 20))
+	async sendConfirmationEmail() {
+		this.calledSendConfirmationEmail += 1
+		await this.sleep(10)
+	}
+
+	sleep(ms = 0) {
+		return new Promise<void>(resolve => setTimeout(resolve, ms))
 	}
 }

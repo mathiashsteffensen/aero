@@ -4,12 +4,14 @@ import Base from "./Base"
 import Connection from "./Connection"
 import * as Decorators from "./decorators"
 import * as Errors from "./Errors"
+import * as Model from "./model"
 import Query from "./Query"
 
 export default abstract class AeroRecord {
 	static Base = Base
 	static Decorators = Decorators
 	static Errors = Errors
+	static Model = Model
 	static Query = Query
 
 	static connection: Connection

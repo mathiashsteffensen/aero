@@ -1,5 +1,5 @@
-import Base from "./Base"
-import { ModelAttributes } from "./types"
+import Base from "../Base"
+import { ModelAttributes } from "../types"
 
 export default class Changes<TRecord extends Base<TRecord>> {
 	/**
@@ -31,10 +31,16 @@ export default class Changes<TRecord extends Base<TRecord>> {
 	 */
 	#state = new Map<ModelAttributes<TRecord>, [TRecord[ModelAttributes<TRecord>], TRecord[ModelAttributes<TRecord>]]>()
 
+	/**
+	 * @internal
+	 */
 	constructor(model: TRecord) {
 		this.#originalValues = model.clone()
 	}
 
+	/**
+	 * @internal
+	 */
 	recordChanges(
 		attribute: ModelAttributes<TRecord>,
 		oldValue: TRecord[ModelAttributes<TRecord>],

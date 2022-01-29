@@ -1,20 +1,21 @@
-import Base from "./Base"
+import Base from "../Base"
 
-import { RecordInvalid, RecordNotUnique } from "./Errors"
-import { ConstructorArgs, ModelAttributes, ValidatorOptions } from "./types"
+import { RecordInvalid, RecordNotUnique } from "../Errors"
+import { ConstructorArgs, ModelAttributes, ValidatorOptions } from "../types"
 
 export default class Validator<TRecord extends Base<TRecord>> {
-	Model: typeof Base
+	Model!: typeof Base
 	property: string
 	options: ValidatorOptions
 
-	constructor(Model: typeof Base, property: string, options: ValidatorOptions) {
-		this.Model = Model
+	constructor(property: string, options: ValidatorOptions) {
 		this.property = property
 		this.options = options
 	}
 
 	async validate(instance: TRecord, throwOnError: boolean) {
+		this.Model = instance.class<typeof Base>()
+
 		const errors: Array<Error> = []
 
 		if (this.options.unique) {
@@ -42,6 +43,11 @@ export default class Validator<TRecord extends Base<TRecord>> {
 
 	async #validateUnique(instance: TRecord) {
 		const property = this.property as ModelAttributes<TRecord>
+
+		if (!instance[property]) {
+			return new RecordNotUnique(`Cannot validate uniqueness of ${this.Model.name}#${property} because it is undefined`)
+		}
+
 		const queryArgs = {
 			[property]: instance[property],
 		} as ConstructorArgs<TRecord>
