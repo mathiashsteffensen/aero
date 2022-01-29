@@ -15,4 +15,4 @@ lint:
 	yarn run eslint test/**/*.ts test/*.ts lib/**/*.ts lib/*.ts --fix $(ARGS)
 
 test:
-	NODE_ENV=test TS_NODE_FILES=true yarn run mocha $(ARGS)
+	NODE_ENV=test TS_NODE_FILES=true yarn run mocha $(ARGS) --timeout 5000

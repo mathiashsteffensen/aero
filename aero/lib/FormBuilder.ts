@@ -37,11 +37,17 @@ export default class FormBuilder<TRecord extends Base<TRecord>> {
 		const errors = this.record.errors.get(attribute as keyof TRecord) || []
 
 		this.inputs.push(`
-			<div>
+			<div class="${Aero.config.aeroForm.inputWrapperClass}">
 				<label for="${id}">
 					${attribute[0]?.toUpperCase()}${attribute.slice(1)}
 				</label>
-				<input class="${Aero.config.aeroForm.inputClass}" name="${id}" id="${id}" type="${type}" />
+				<input
+					class="${Aero.config.aeroForm.inputClass}"
+					value="${this.record[attribute as keyof Base<TRecord>] || ""}"
+					name="${id}"
+					id="${id}"
+					type="${type}"
+				/>
 				${errors.length !== 0 ? `<div class="${Aero.config.aeroForm.errorFeedbackClass}">
 					${errors.map((err) => `<span>
 						${err.message}

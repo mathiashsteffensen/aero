@@ -1,12 +1,12 @@
 import fs from "fs/promises"
-import ejs, { TemplateFunction, Data } from "ejs"
+import ejs, { Data, AsyncTemplateFunction } from "ejs"
 
 import AeroSupport from "@aero/aero-support"
 
 import { ViewEngine } from "../types"
 
 export class EJS implements ViewEngine {
-	state = new Map<string, TemplateFunction>()
+	state = new Map<string, AsyncTemplateFunction>()
 
 	async load(viewDir: string) {
 		const files = (new AeroSupport.FileLoader(viewDir)).load().files
@@ -17,6 +17,7 @@ export class EJS implements ViewEngine {
 				(await fs.readFile(file)).toString(),
 				{
 					cache: true,
+					async: true,
 					filename: templateName,
 				},
 			)

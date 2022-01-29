@@ -16,7 +16,7 @@
     "fastify": "^3.25.1",
     "fastify-formbody": "^5.2.0",
     "fastify-static": "^4.5.0",
-    "pino": "^7.6.0",
+    "pino": "^7.6.4",
     "pluralize": "^8.0.0",
     "qs": "^6.10.2",
     "schema-validator": "^3.3.1"

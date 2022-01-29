@@ -1,3 +1,6 @@
+import YAML from "yaml"
+import { ConfigurationOptions } from "i18n"
+
 // Internal dependencies
 import AeroWeb from "@aero/aero-web"
 import Routes from "@aero/aero-web/dist/typings/Routes"
@@ -118,7 +121,11 @@ export default abstract class Aero {
 				api: {
 					"__": "t",
 				},
-			})
+				parser: YAML,
+				logDebugFn: Aero.logger.debug,
+				logWarnFn: Aero.logger.warn,
+				logErrorFn: Aero.logger.error,
+			} as ConfigurationOptions)
 
 			// Load the routes
 			this.routes = new AeroWeb.Routes(

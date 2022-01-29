@@ -10,7 +10,7 @@
   "dependencies": {
     "bullmq": "^1.64.0",
     "cuid": "^2.1.8",
-    "pino": "^7.6.0"
+    "pino": "^7.6.4"
   },
   "devDependencies": {
     "@aero/aero-support": "../aero-support",

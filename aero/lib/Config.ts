@@ -37,8 +37,9 @@ export default class Config {
 
 	// Form config
 	aeroForm = {
-		inputClass: "input input-primary",
-		buttonClass: "btn btn-primary",
-		errorFeedbackClass: "alert alert-danger",
+		inputClass: "",
+		inputWrapperClass: "",
+		buttonClass: "",
+		errorFeedbackClass: "",
 	}
 }

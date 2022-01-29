@@ -53,6 +53,17 @@ export default abstract class Controller {
 		})
 	}
 
+	renderPartial = (partialName: string, data: Record<string, unknown>) => {
+		const fullPartialName = `/pages/${this.controllerName.replace("_", "/")}/partials/${partialName}`
+
+		return this.viewEngine.render(fullPartialName, {
+			...this.viewLocals,
+			...data,
+		})
+	}
+
+	get redirectTo() { return this.res.redirect }
+
 	get viewLocals() {
 		return {
 			...this,
