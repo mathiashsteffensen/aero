@@ -1,4 +1,5 @@
 import { RouteState } from "./types"
+import AeroWeb from "./AeroWeb"
 
 const inferNameFromPath = (path: string) => {
 	let name = path
@@ -35,7 +36,7 @@ export default class RouteHelpers {
 					)
 				}
 
-				return constructedPath
+				return `${AeroWeb.config.currentDomain()}${constructedPath}`
 			}
 		}
 	}

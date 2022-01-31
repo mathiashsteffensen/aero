@@ -1,0 +1,39 @@
+{
+  "name": "@aero/aero-auth",
+  "version": "1.0.0",
+  "description": "Auth engine for Aero",
+  "main": "dist",
+  "types": "dist",
+  "repository": "https://github.com/mathiashsteffensen/aero/aero-job",
+  "author": "Mathias H Steffensen",
+  "license": "MIT",
+  "dependencies": {
+    "@aero/aero": "../aero",
+    "@aero/aero-job": "../aero-job",
+    "@aero/aero-mailer": "../aero-mailer",
+    "@aero/aero-record": "../aero-record",
+    "@aero/aero-support": "../aero-support",
+    "@aero/aero-web": "../aero-web",
+    "bootstrap": "^5.1.3",
+    "cuid": "^2.1.8",
+    "pm2": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^14.14.34",
+    "chai": "^4.2.0",
+    "mocha": "^9.1.3",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  },
+  "resolutions": {
+    "@aero/aero": "portal:/home/mathias/code/aero/aero",
+    "@aero/aero-web": "portal:/home/mathias/code/aero/aero-web",
+    "@aero/aero-record": "portal:/home/mathias/code/aero/aero-record",
+    "@aero/aero-mailer": "portal:/home/mathias/code/aero/aero-mailer",
+    "@aero/aero-support": "portal:/home/mathias/code/aero/aero-support"
+  },
+  "packageManager": "yarn@3.1.1"
+}

@@ -23,7 +23,7 @@ export default class Worker {
 		await this.enqueueJob(args, ms)
 	}
 
-	private static async enqueueJob<TWorkerArgs>(args: TWorkerArgs, ms = 0) {
+	static async enqueueJob<TWorkerArgs>(args: TWorkerArgs, ms = 0) {
 		if (ms === 0) {
 			await AeroJob.config.driver.enqueue(
 				this.queue,

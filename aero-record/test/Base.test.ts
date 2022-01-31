@@ -73,11 +73,12 @@ describe("Base", () => {
 		context("when record exists in the database", () => {
 			beforeEach(async () => {
 				const dummyModel: DummyModel = DummyModel.new({ id: "an-id" })
-				await dummyModel.save()
+				await dummyModel.save({ throwOnError: true })
 
 				params = {
 					id: dummyModel.id,
 				}
+
 				await doFindBy()
 			})
 

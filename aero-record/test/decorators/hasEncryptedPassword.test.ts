@@ -1,6 +1,7 @@
-import * as assert from "assert"
+import { expect } from "chai"
 
 import BaseDummyModel  from "../BaseDummyModel"
+import bcrypt from "bcrypt"
 
 describe("AeroRecord", () => {
 	describe(".Decorators", () => {
@@ -14,12 +15,18 @@ describe("AeroRecord", () => {
 				})
 
 				beforeEach(async () => {
-					dummyModel.setId()
+					await dummyModel.setId()
 					await dummyModel.save()
 				})
 
-				it("hashes the password", () => {
-					assert.notEqual(dummyModel.password, "password")
+				it("hashes the password", async () => {
+					expect(dummyModel.password).not.to.eq("password")
+					expect(
+						await bcrypt.compare(
+							"password",
+							dummyModel.password || "",
+						),
+					).to.be.true
 				})
 			})
 
@@ -30,15 +37,21 @@ describe("AeroRecord", () => {
 				})
 
 				beforeEach(async () => {
-					dummyModel.setId()
+					await dummyModel.setId()
 					await dummyModel.save()
 
 					dummyModel.password = "new-password"
 					await dummyModel.save()
 				})
 
-				it("hashes the password", () => {
-					assert.notEqual(dummyModel.password, "new-password")
+				it("hashes the password", async () => {
+					expect(dummyModel.password).not.to.eq("new-password")
+					expect(
+						await bcrypt.compare(
+							"new-password",
+							dummyModel.password || "",
+						),
+					).to.be.true
 				})
 			})
 
@@ -52,7 +65,7 @@ describe("AeroRecord", () => {
 				let passwordAfter: string
 
 				beforeEach(async () => {
-					dummyModel.setId()
+					await dummyModel.setId()
 					await dummyModel.save()
 
 					passwordBefore = dummyModel.password as string
@@ -63,8 +76,14 @@ describe("AeroRecord", () => {
 					passwordAfter = dummyModel.password as string
 				})
 
-				it("doesn't hash the password", () => {
-					assert.equal(passwordBefore, passwordAfter)
+				it("doesn't hash the password again", async () => {
+					expect(passwordBefore).to.eq(passwordAfter)
+					expect(
+						await bcrypt.compare(
+							"password",
+							passwordAfter,
+						),
+					).to.be.true
 				})
 			})
 		})

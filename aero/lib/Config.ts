@@ -1,6 +1,7 @@
 import i18n from "i18n"
 import pino from "pino"
 
+import AeroWeb from "@aero/aero-web"
 import { Cache } from "@aero/aero-support/lib/interfaces"
 import { ViewEngine } from "@aero/aero-web/dist/typings/types"
 
@@ -12,6 +13,9 @@ export default class Config {
 	databaseFile = "config/database.yml"
 	controllerDir = "app/controllers"
 	staticDir = "public"
+
+	// Web config
+	web = AeroWeb.config
 
 	// Log config
 	get logLevel() { return Aero.logger.level }

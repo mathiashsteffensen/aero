@@ -9,6 +9,7 @@ const instance = pino(NODE_ENV === "development" ? {
 			colorize: true,
 		},
 	},
+	level: "trace",
 } : {})
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -37,7 +38,7 @@ export default class Logger implements pino.BaseLogger {
 	}
 
 	private shouldLog(level: pino.Level | "silent") {
-		return (pino.levels.values[level] || 0) > (pino.levels.values[this.level] || 0)
+		return (pino.levels.values[level] || 0) >= (pino.levels.values[this.level] || 0)
 	}
 
 	private pinoDup(level: pino.Level | "silent") {

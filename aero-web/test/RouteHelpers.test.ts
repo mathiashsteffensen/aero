@@ -22,7 +22,7 @@ describe(RouteHelpers.name, () => {
 			})
 
 			it("just returns the plain path based on the inferred name", () => {
-				assert.equal(routeHelpers.session_new?.(), "/session/new")
+				assert.equal(routeHelpers.session_new?.(), "https://localhost:8080/session/new")
 			})
 		})
 
@@ -39,7 +39,7 @@ describe(RouteHelpers.name, () => {
 			})
 
 			it("returns the plain path based on the passed name", () => {
-				assert.equal(routeHelpers.new_session?.(), "/session/new")
+				assert.equal(routeHelpers.new_session?.(), "https://localhost:8080/session/new")
 			})
 		})
 	})
@@ -58,7 +58,7 @@ describe(RouteHelpers.name, () => {
 
 		context("when not passing any replacements", () => {
 			it("returns the path with the named parameter still in it", () => {
-				assert.equal(routeHelpers.user?.(), "/user/:id")
+				assert.equal(routeHelpers.user?.(), "https://localhost:8080/user/:id")
 			})
 		})
 
@@ -66,7 +66,7 @@ describe(RouteHelpers.name, () => {
 			it("replaces the named param with the given value", () => {
 				assert.equal(
 					routeHelpers.user?.({ id: "ckxkf9h2b00000s8hcr24c5hk" }),
-					"/user/ckxkf9h2b00000s8hcr24c5hk",
+					"https://localhost:8080/user/ckxkf9h2b00000s8hcr24c5hk",
 				)
 			})
 		})

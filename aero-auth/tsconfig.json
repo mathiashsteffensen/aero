@@ -1,0 +1,8 @@
+{
+  "extends": "../aero-support/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "resolveJsonModule": true
+  },
+  "exclude": ["./test", "./dist"]
+}

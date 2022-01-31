@@ -11,6 +11,10 @@ const toSnakeCase = (s: string) =>
 export default class Controllers {
 	#state: Map<string, ControllerConstructor> = new Map<string, ControllerConstructor>()
 
+	set(name: string, controller: ControllerConstructor) {
+		this.#state.set(name, controller)
+	}
+
 	// TODO: Clean up this shitty controller parsing - a couple comments wouldn't hurt
 	async loadDir(dir: string, controllerNamePrefix = "") {
 		for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -19,15 +23,16 @@ export default class Controllers {
 			const importFile = async () => (await import(absPath.split(".")[0] || "")).default
 
 			if (f.isFile()) {
+				// Snake case file name and strip '_controller' suffix if exists
 				const controllerName = toSnakeCase(f.name).split("_controller")[0] || ""
 				if (controllerNamePrefix) {
-					this.#state.set(`${controllerNamePrefix}_${controllerName}`, await importFile())
+					this.set(`${controllerNamePrefix}::${controllerName}`, await importFile())
 				} else {
-					this.#state.set(controllerName, await importFile())
+					this.set(controllerName, await importFile())
 				}
 			} else {
 				if (controllerNamePrefix) {
-					await this.loadDir(absPath, `${controllerNamePrefix}_${f.name}`)
+					await this.loadDir(absPath, `${controllerNamePrefix}::${f.name}`)
 				} else {
 					await this.loadDir(absPath, f.name)
 				}

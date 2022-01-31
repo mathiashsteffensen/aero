@@ -111,11 +111,20 @@ export default abstract class Aero {
 			const ApplicationClass = (await import(this.root.join(applicationPath))).default
 			this.application = new ApplicationClass()
 
+			Aero.logger.info("Loading Aero configuration")
 			// Configure and initialize Aero.Application instance
 			this.application.configure(this.config)
+
+			// Load environment specific config
+			await import(Aero.root.join("config", "environments", Aero.env.toString()))
+
+			Aero.logger.debug("Initializing Aero.Application instance")
 			await this.application.initialize()
+
+			Aero.logger.debug("Initializing database connection")
 			await this.application.initDB()
 
+			Aero.logger.debug("Loading locales")
 			this.config.i18n({
 				directory: Aero.root.join("config/locales"),
 				api: {
@@ -127,7 +136,8 @@ export default abstract class Aero {
 				logErrorFn: Aero.logger.error,
 			} as ConfigurationOptions)
 
-			// Load the routes
+			Aero.logger.debug("Loading routes")
+			AeroWeb.logger = Aero.logger
 			this.routes = new AeroWeb.Routes(
 				this.application.controllers,
 				this.application.server,
@@ -139,6 +149,24 @@ export default abstract class Aero {
 			)
 
 			await import(this.root.join(this.config.routesFile))
+
+			// Add the welcome page if no routes are registered yet
+			if (this.routes.state.length === 0) {
+				await this.application.controllers.load(
+					`${__dirname}/controllers`,
+				)
+
+				await this.application.viewEngine.load(
+					`${__dirname}/views`,
+				)
+
+				this.routes.addRoute({
+					method: "GET",
+					path: "/",
+					spec: "aero::welcome#index",
+					options: {},
+				}, "")
+			}
 
 			return this
 		} catch (e) {

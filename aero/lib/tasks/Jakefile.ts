@@ -1,5 +1,5 @@
 import "jake"
-import Aero from "../Aero"
+import CLI from "../CLI"
 
 const sh = (cmd: string) =>
 	new Promise((resolve) => jake.exec(
@@ -10,5 +10,5 @@ const sh = (cmd: string) =>
 
 desc("Starts the Aero server")
 task("s" , async () => {
-	await sh(`./node_modules/.bin/pm2 start config/process.${Aero.env.toString()}.config.js --no-daemon`)
+	await sh(CLI.SERVE_COMMAND)
 })

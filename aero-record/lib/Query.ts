@@ -9,7 +9,7 @@ import * as Helpers from "./Helpers"
 
 import { ConstructorArgs } from "./types"
 
-type QueryParams<TRecord extends Base<TRecord>> = ConstructorArgs<TRecord> | string;
+export type QueryParams<TRecord extends Base<TRecord>> = ConstructorArgs<TRecord> | string;
 
 export default class Query<TRecord extends Base<TRecord>> {
 	#RecordClass: typeof Base

@@ -6,6 +6,7 @@ import AeroRecord from "@aero/aero-record"
 import { UsableFunction } from "@aero/aero-record/dist/typings/types"
 
 import Aero from "./Aero"
+import AeroJob from "@aero/aero-job"
 
 export type TestResponse = LightMyRequestResponse
 
@@ -29,7 +30,7 @@ let aero: Promise<typeof Aero | void>
  */
 export default class AeroTest {
 	static hooks(AeroClass: typeof Aero) {
-		 aero = AeroClass
+		aero = AeroClass
 			.initialize("config/Application")
 			.catch(Aero.logger.fatal)
 
@@ -46,6 +47,14 @@ export default class AeroTest {
 				await (AeroRecord.connection.knex as unknown as Knex.Transaction).rollback()
 			},
 			async beforeAll() {
+				AeroJob.logger = Aero.logger
+				AeroJob
+					.initialize(
+						Aero.root.join("app/workers"),
+					)
+					.start()
+					.catch(Aero.logger.fatal)
+
 				await aero
 			},
 			async afterAll() {
@@ -66,20 +75,20 @@ export default class AeroTest {
 		}))
 	}
 
-	async post(path: string, data: InjectOptions["payload"], headers: Record<string, string>) {
+	async post(path: string, data: InjectOptions["payload"] = {}, headers: Record<string, string> = {}) {
 		return (await aero)?.application.server.fastify.inject({
 			method: "POST",
 			payload: data,
 			path,
 			headers,
-		});
+		})
 	}
 
-	async get(path: string, headers: Record<string, string>) {
+	async get(path: string, headers: Record<string, string> = {}) {
 		return (await aero)?.application.server.fastify.inject({
 			method: "GET",
 			path,
 			headers,
-		});
+		})
 	}
 }

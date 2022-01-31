@@ -12,11 +12,13 @@ import { Command } from "commander"
 
 import Aero from "./Aero"
 
-const program = new Command()
+const program = new Command("aero")
 
 program.version(Aero.version, "-v, --version")
 
 export default class CLI {
+	static SERVE_COMMAND = `./node_modules/.bin/pm2 start config/process.${Aero.env.toString()}.config.js --no-daemon`
+
 	constructor() {
 		program
 			.command("s")
@@ -30,8 +32,8 @@ export default class CLI {
 			.action(this.new)
 	}
 
-	run() {
-		program.parse()
+	run(args = process.argv) {
+		program.parse(args)
 	}
 
 	async new(name: string) {
@@ -73,7 +75,7 @@ export default class CLI {
 	}
 
 	serve() {
-		exec(`./node_modules/.bin/pm2 start config/process.${Aero.env.toString()}.config.js --no-daemon`)
+		exec(CLI.SERVE_COMMAND)
 	}
 }
 

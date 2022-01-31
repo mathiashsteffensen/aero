@@ -4,6 +4,7 @@ import fastifyFormBody from "fastify-formbody"
 import qs from "qs"
 import pino from "pino"
 import cuid from "cuid"
+import AeroWeb from "./AeroWeb"
 
 declare module "fastify" {
 	interface FastifyRequest {
@@ -72,9 +73,9 @@ export default class Server {
 	}
 
 	async start() {
-		const host = "0.0.0.0"
-		const port = 8080
-
-		return this.fastify.listen({ port, host })
+		return this.fastify.listen({
+			port: AeroWeb.config.port,
+			host: AeroWeb.config.host,
+		})
 	}
 }

@@ -1,6 +1,7 @@
 import AeroWeb, { Server } from "@aero/aero-web"
 import { ViewEngine } from "@aero/aero-web/dist/typings/types"
 import AeroRecord from "@aero/aero-record"
+import AeroMailer from "@aero/aero-mailer"
 
 import Config from "./Config"
 import ENV from "./ENV"
@@ -80,8 +81,6 @@ export default abstract class Application implements IApplication {
 	 * ```
 	 */
 	async initialize() {
-		await import(Aero.root.join("config", "environments", Aero.env.toString()))
-
 		this.server = new AeroWeb.Server({
 			logger: Aero.logger,
 			staticDir: Aero.root.join(Aero.config.staticDir),
@@ -95,6 +94,12 @@ export default abstract class Application implements IApplication {
 
 		await this.viewEngine.load(
 			Aero.root.join(Aero.config.viewDir),
+		)
+
+		AeroMailer.viewEngine = new (this.viewEngine.constructor as { new(): ViewEngine })
+
+		await AeroMailer.viewEngine.load(
+			Aero.root.join("app/mails"), // TODO: Make a configuration option
 		)
 
 		await this.assetPipeline.compile().then(() => {
@@ -131,9 +136,14 @@ export default abstract class Application implements IApplication {
 	}
 
 	start(version: string) {
-		Aero.logger.info("Starting Aero application")
-		Aero.logger.info("Environment: %s", this.env.toString())
-		Aero.logger.info("Version: %s", version)
+		Aero.logger.info(`
+******************************
+	Starting Aero server
+	------------------------------
+	URL          | http://${Aero.config.web.host}:${Aero.config.web.port}
+	Environment  | ${this.env.toString()}
+	Version      | ${version}
+******************************`)
 
 		return this.server.start()
 	}

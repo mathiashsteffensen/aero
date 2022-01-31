@@ -4,6 +4,7 @@ import ejs, { Data, AsyncTemplateFunction } from "ejs"
 import AeroSupport from "@aero/aero-support"
 
 import { ViewEngine } from "../types"
+import AeroWeb from "../AeroWeb"
 
 export class EJS implements ViewEngine {
 	state = new Map<string, AsyncTemplateFunction>()
@@ -22,7 +23,7 @@ export class EJS implements ViewEngine {
 				},
 			)
 
-			this.state.set(templateName.startsWith("/") ? templateName : templateName.slice(1), template)
+			this.state.set(templateName.startsWith("/") ? templateName.slice(1): templateName, template)
 		}
 	}
 
@@ -33,6 +34,14 @@ export class EJS implements ViewEngine {
 			throw new Error(`Couldn't find template with path ${viewPath}, available templates are: ${[...this.state.keys()].join("\n")}`)
 		}
 
-		return template(data)
+		const start = Date.now()
+
+		const result = await template(data)
+
+		AeroWeb.logger.debug(
+			`Rendered template ${viewPath} in ${Date.now() - start}ms`,
+		)
+
+		return result
 	}
 }

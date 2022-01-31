@@ -7,10 +7,9 @@
   "license": "MIT",
   "main": "dist/js/lib/Aero.js",
   "types": "dist/typings/lib/Aero.d.ts",
-  "bin": {
-    "aero": "bin/aero.js"
-  },
+  "bin": "bin/aero.js",
   "dependencies": {
+    "@aero/aero-mailer": "../aero-mailer",
     "@aero/aero-support": "../aero-support",
     "@aero/aero-web": "../aero-web/",
     "@types/i18n": "^0.13.2",
@@ -54,6 +53,7 @@
     "@aero/aero-web": "portal:/home/mathias/code/aero/aero-web",
     "@aero/aero-record": "portal:/home/mathias/code/aero/aero-record",
     "@aero/aero-support": "portal:/home/mathias/code/aero/aero-support",
-    "@aero/aero-job": "portal:/home/mathias/code/aero/aero-job"
+    "@aero/aero-job": "portal:/home/mathias/code/aero/aero-job",
+    "@aero/aero-mailer": "portal:/home/mathias/code/aero/aero-mailer"
   }
 }

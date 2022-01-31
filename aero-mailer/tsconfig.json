@@ -1,0 +1,9 @@
+{
+  "extends": "../aero-support/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./lib",
+    "outDir": "./dist/js",
+    "declarationDir": "./dist/typings"
+  },
+  "exclude": ["./test", "./dist"]
+}

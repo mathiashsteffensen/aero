@@ -42,8 +42,12 @@ export default class Base<TRecord extends Base<TRecord>> extends BasicObject {
 	 *   }
 	 * ```
 	 */
+	static _tableName: string
+	static set tableName(newTableName) {
+		this._tableName = newTableName
+	}
 	static get tableName () {
-		return pluralize.plural(Helpers.toSnakeCase(this.name))
+		return this._tableName ||= pluralize.plural(Helpers.toSnakeCase(this.name))
 	}
 
 	/**

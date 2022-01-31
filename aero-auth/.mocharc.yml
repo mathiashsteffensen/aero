@@ -1,0 +1,14 @@
+require: test/AeroHelper.ts
+extension:
+  - ts
+node-option:
+  - experimental-specifier-resolution=node
+  - loader=ts-node/esm
+  - no-warnings
+spec:
+  - test/**/*.test.ts
+ui: bdd
+bail: true
+watch-ignore:
+  - node_modules
+  - dist

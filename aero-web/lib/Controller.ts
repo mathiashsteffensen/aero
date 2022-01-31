@@ -13,7 +13,7 @@ export type ControllerConstructor = {
 	): Controller
 }
 
-export default abstract class Controller {
+export default class Controller {
 	static layout = "application"
 
 	controllerName: string
@@ -23,7 +23,7 @@ export default abstract class Controller {
 	res: FastifyReply
 	params: Parameters
 
-	protected constructor(
+	constructor(
 		controllerName: string,
 		viewEngine: ViewEngine,
 		viewHelpers: Record<string, unknown>,
@@ -39,8 +39,8 @@ export default abstract class Controller {
 	}
 
 	async render(templateName: string) {
-		const layoutName = `/layouts/${(this.constructor as typeof Controller).layout}`
-		const pageName = `/pages/${this.controllerName.replace("_", "/")}/${templateName}`
+		const layoutName = `layouts/${(this.constructor as typeof Controller).layout}`
+		const pageName = `pages/${this.controllerName.replace("::", "/")}/${templateName}`
 
 		this.res.type("text/html")
 
@@ -54,7 +54,7 @@ export default abstract class Controller {
 	}
 
 	renderPartial = (partialName: string, data: Record<string, unknown>) => {
-		const fullPartialName = `/pages/${this.controllerName.replace("_", "/")}/partials/${partialName}`
+		const fullPartialName = `pages/${this.controllerName.replace("::", "/")}/partials/${partialName}`
 
 		return this.viewEngine.render(fullPartialName, {
 			...this.viewLocals,
