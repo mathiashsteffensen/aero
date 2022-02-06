@@ -3,6 +3,7 @@ import AeroSupport from "@aero/aero-support"
 import Config from "./Config"
 import Controller from "./Controller"
 import Controllers from "./Controllers"
+import * as Decorators from "./decorators"
 import * as ViewEngines from "./view-engines"
 import Routes from "./Routes"
 import RouteHelpers from "./RouteHelpers"
@@ -12,6 +13,7 @@ export {
 	Config,
 	Controller,
 	Controllers,
+	Decorators,
 	ViewEngines,
 	Routes,
 	RouteHelpers,
@@ -23,6 +25,7 @@ export default class AeroWeb {
 	static config: Config = new Config()
 	static Controller = Controller
 	static Controllers = Controllers
+	static Decorators = Decorators
 	static ViewEngines = ViewEngines
 	static Routes = Routes
 	static RouteHelpers = RouteHelpers

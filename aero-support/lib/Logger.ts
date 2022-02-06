@@ -2,7 +2,7 @@ import { pino }  from "pino"
 
 const NODE_ENV = (process.env.NODE_ENV || "development")
 
-const instance = pino(NODE_ENV === "development" ? {
+const parent = pino(NODE_ENV === "development" ? {
 	transport: {
 		target: "pino-pretty",
 		options: {
@@ -10,11 +10,19 @@ const instance = pino(NODE_ENV === "development" ? {
 		},
 	},
 	level: "trace",
-} : {})
+} : {
+	level: "trace",
+})
+
+const defaultLogLevel = NODE_ENV === "test"
+	? "warn"
+	: NODE_ENV === "development"
+		? "debug"
+		: "info"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default class Logger implements pino.BaseLogger {
-	level: pino.Level | "silent" = NODE_ENV === "test" ? "warn" : "info"
+	level: pino.Level | "silent" = defaultLogLevel
 
 	silent: pino.LogFn
 	trace: pino.LogFn
@@ -23,7 +31,7 @@ export default class Logger implements pino.BaseLogger {
 	warn: pino.LogFn
 	error: pino.LogFn
 
-	constructor() {
+	constructor(private instance = parent) {
 		this.silent = this.pinoDup("silent")
 		this.trace = this.pinoDup("trace")
 		this.debug = this.pinoDup("debug")
@@ -32,9 +40,13 @@ export default class Logger implements pino.BaseLogger {
 		this.error = this.pinoDup("error")
 	}
 
-	fatal(obj: unknown, msg?: string, ...args: any[]) {
-		instance.fatal(obj, msg, args)
+	fatal = (obj: unknown, msg?: string, ...args: any[]) => {
+		this.instance.fatal(obj, msg, args)
 		process.exit()
+	}
+
+	bind = (obj: Record<string, unknown>) => {
+		return new Logger(this.instance.child(obj))
 	}
 
 	private shouldLog(level: pino.Level | "silent") {
@@ -42,9 +54,14 @@ export default class Logger implements pino.BaseLogger {
 	}
 
 	private pinoDup(level: pino.Level | "silent") {
-		return (obj: unknown, msg?: string, ...args: any[]) => {
+		return (obj?: unknown, msg?: string, ...args: any[]) => {
+			if (!obj) {
+				this.level = level
+				return
+			}
+
 			if (this.shouldLog(level)) {
-				instance[level](obj, msg, args)
+				this.instance[level](obj, msg, args)
 			}
 		}
 	}

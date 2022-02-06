@@ -16,6 +16,8 @@
     "@aero/aero-web": "../aero-web",
     "bootstrap": "^5.1.3",
     "cuid": "^2.1.8",
+    "fastify-secure-session": "^3.0.0",
+    "pluralize": "^8.0.0",
     "pm2": "^4.5.0"
   },
   "devDependencies": {
@@ -23,7 +25,9 @@
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "^14.14.34",
+    "@types/pluralize": "^0.0.29",
     "chai": "^4.2.0",
+    "eslint": "^8.8.0",
     "mocha": "^9.1.3",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"

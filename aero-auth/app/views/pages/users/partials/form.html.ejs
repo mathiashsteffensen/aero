@@ -1,0 +1,8 @@
+<div class="d-flex justify-content-center">
+    <%- formFor(record, (f) => {
+        f.input("email")
+        f.input("password", "password")
+
+        f.button(cta)
+    }, { path }) %>
+</div>

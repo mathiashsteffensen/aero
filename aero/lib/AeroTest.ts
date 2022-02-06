@@ -36,7 +36,10 @@ export default class AeroTest {
 
 		AeroRecord.establishConnection("test")
 
-		const knex = knexConstructor(AeroRecord.connection.config["test"] as unknown as Knex.Config)
+		const knex = knexConstructor({
+			...AeroRecord.connection.config["test"] as unknown as Knex.Config,
+			pool: { min: 1, max: 1 },
+		})
 		knex.on("query-error", (data) => AeroRecord.logger.warn(data))
 
 		return {
@@ -76,7 +79,7 @@ export default class AeroTest {
 	}
 
 	async post(path: string, data: InjectOptions["payload"] = {}, headers: Record<string, string> = {}) {
-		return (await aero)?.application.server.fastify.inject({
+		return (await aero)!.application.server.fastify.inject({
 			method: "POST",
 			payload: data,
 			path,
@@ -85,10 +88,11 @@ export default class AeroTest {
 	}
 
 	async get(path: string, headers: Record<string, string> = {}) {
-		return (await aero)?.application.server.fastify.inject({
+		return (await aero)!.application.server.fastify.inject({
 			method: "GET",
 			path,
 			headers,
+
 		})
 	}
 }

@@ -7,6 +7,9 @@ import * as Errors from "./Errors"
 import * as Model from "./model"
 import Query from "./Query"
 
+export * from "./decorators"
+export * from "./Errors"
+
 export default abstract class AeroRecord {
 	static Base = Base
 	static Decorators = Decorators

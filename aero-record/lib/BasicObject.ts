@@ -1,6 +1,6 @@
 export default class BasicObject extends Object {
 	__set__(attribute: string | symbol | number, value: unknown) {
-		return Object.assign(this, {
+		Object.assign(this, {
 			[attribute]: value,
 		})
 	}

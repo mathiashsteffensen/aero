@@ -15,8 +15,8 @@ export const hasEncryptedPassword = (): PropertyDecorator => {
 	return (target, attribute) => {
 		const Class = target.constructor as typeof Base
 
-		Class.hooks.before("create", encryptPassword(attribute))
-		Class.hooks.before(
+		Class.before("create", encryptPassword(attribute))
+		Class.before(
 			"update",
 			encryptPassword(attribute),
 			{

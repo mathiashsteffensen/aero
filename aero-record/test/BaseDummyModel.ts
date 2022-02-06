@@ -1,7 +1,10 @@
-import AeroRecord from "../lib/AeroRecord"
-import Base from "../lib/Base"
+import AeroRecord, { hasEncryptedPassword, beforeCreate } from "../lib/AeroRecord"
 
-export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroRecord.Base<BaseDummyModel<TRecord>> {
+export default class BaseDummyModel<TRecord extends BaseDummyModel<TRecord>> extends AeroRecord.Base<TRecord> {
+	static get tableName() {
+		return "dummy_models"
+	}
+
 	id!: string
 
 	createdAt?: Date
@@ -10,11 +13,11 @@ export default class BaseDummyModel<TRecord extends Base<TRecord>> extends AeroR
 	name?: string
 	email?: string
 
-	@AeroRecord.Decorators.hasEncryptedPassword()
+	@hasEncryptedPassword()
 		password?: string
 
 	calledSetId = 0
-	@AeroRecord.Decorators.before("create")
+	@beforeCreate()
 	async setId() {
 		this.id = "an-id"
 		this.calledSetId += 1

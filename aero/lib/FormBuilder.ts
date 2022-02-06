@@ -25,9 +25,11 @@ export default class FormBuilder<TRecord extends Base<TRecord>> {
 
 	private get inferredPathFromRecord() {
 		if (this.record.isNewRecord) {
-			return Aero.routes.make[`create_${this.recordTableName}`]?.()
+			return Aero.routes.make[`create_${this.recordTableName}`]?.()?.path
+				|| Aero.routes.make[`create_${pluralize.singular(this.recordTableName)}`]?.()?.path
 		} else {
-			return Aero.routes.make[`update_${this.recordTableName}`]?.()
+			return Aero.routes.make[`update_${this.recordTableName}`]?.()?.path
+				|| Aero.routes.make[`update_${pluralize.singular(this.recordTableName)}`]?.()?.path
 		}
 	}
 

@@ -1,0 +1,6 @@
+<div class="d-flex flex-column align-items-center">
+    <p>Authenticated as User with email <%= record.email %></p>
+
+    <%- buttonTo("Log Out", paths.logout_user().full, { class: "btn btn-outline-danger" }) %>
+    <%- buttonTo("Delete User", paths.destroy_user().full, { class: "btn btn-danger" }) %>
+</div>

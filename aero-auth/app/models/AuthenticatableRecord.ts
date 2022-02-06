@@ -4,8 +4,8 @@ import cuid from "cuid"
 import AeroRecord from "@aero/aero-record"
 
 import { BaseRecord } from "./BaseRecord"
-import Aero from "@aero/aero";
-import { SaveOptions, ConstructorArgs } from "@aero/aero-record/dist/typings/types"
+import Aero from "@aero/aero"
+import { ConstructorArgs } from "@aero/aero-record/dist/typings/types"
 
 export abstract class AuthenticatableRecord<TRecord extends AuthenticatableRecord<TRecord>> extends BaseRecord<TRecord> {
     /* Attributes */
@@ -45,28 +45,32 @@ export abstract class AuthenticatableRecord<TRecord extends AuthenticatableRecor
     }
 
     static async login<TRecord extends AuthenticatableRecord<TRecord>>(email: string, password: string, ttl = 1000 * 60 * 60 * 24 * 7): Promise<[TRecord, string | undefined]> {
+        const recordIdentifier = `${this.name} with email = '${email}'`
+
+        Aero.logger.debug(`Starting authentication for ${recordIdentifier}`)
         let record = await this.findByEmail<TRecord>(email)
 
         if (!record) {
             record = this.new<TRecord>()
             record.errors.add("email", new AeroRecord.Errors.AeroRecordError("Invalid email or password"))
+            Aero.logger.debug(`Authentication failed for ${recordIdentifier}: Email invalid`)
             return [record, undefined]
         }
 
         if (!(await record.isValidPassword(password))) {
             record = this.new<TRecord>()
             record.errors.add("email", new AeroRecord.Errors.AeroRecordError("Invalid email or password"))
+            Aero.logger.debug(`Authentication failed for ${recordIdentifier}: Password invalid`)
             return [record, undefined]
         }
+
+        Aero.logger.debug(`Authentication successful for ${recordIdentifier}`)
 
         // Register a session token in the cache and return it with the record
         const token = await bcrypt.hash(cuid(), 8)
 
         await Aero.cache.set(token, record.id, { ttl }) // Token will correspond to the record id
-        return [record, token]
-    }
 
-    save(options?: SaveOptions): Promise<boolean> {
-        return super.save(options)
+        return [record, token]
     }
 }

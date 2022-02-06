@@ -1,10 +1,12 @@
 import { fastify, FastifyInstance } from "fastify"
 import fastifyStatic from "fastify-static"
 import fastifyFormBody from "fastify-formbody"
+import fastifySecureSession from "fastify-secure-session"
 import qs from "qs"
 import pino from "pino"
 import cuid from "cuid"
 import AeroWeb from "./AeroWeb"
+import fs from "fs"
 
 declare module "fastify" {
 	interface FastifyRequest {
@@ -38,8 +40,14 @@ export default class Server {
 
 		this.fastify.register(fastifyFormBody, { parser: qs.parse })
 
+		this.fastify.register(fastifySecureSession, {
+			key: fs.readFileSync(AeroWeb.config.secretKeyFile),
+		})
+
 		// Add request logging
 		this.fastify.addHook("onRequest", (request, _reply, done) => {
+			this.logger.debug(`Started ${request.method.toUpperCase()} for ${request.url}`)
+
 			request.startAt = Date.now()
 			done()
 		})

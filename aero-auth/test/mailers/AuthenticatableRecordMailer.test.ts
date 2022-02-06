@@ -24,14 +24,15 @@ describe("AuthenticatableRecordMailer", () => {
         passwordHash: "password",
       })
 
-      mail = await mailer.confirmEmail(user.id, Aero.routes.make.confirm_email?.() || "")
+      mail = await mailer.confirmEmail(user.id, Aero.routes.make.confirm_email?.().toString() || "")
       html = await mail.preview()
 
       await user.reload()
     })
 
-    it("renders an email with the email confirmation token", () => {
+    it("renders an email with the email confirmation token", async () => {
       expect(html?.includes(user.emailConfirmationToken as string)).to.be.true
+      expect(await Aero.cache.get(`confirm-email::${user.emailConfirmationToken}`)).to.eq(user.id)
     })
   })
 })

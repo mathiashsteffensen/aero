@@ -4,7 +4,7 @@ import Routes from "./Routes"
 import { RouteOptions, RouteSpecification } from "./types"
 
 interface ResourceOptions {
-	except?: Array<"new" | "edit" | "create" | "update" | "show" | "index">
+	except?: Array<"new" | "edit" | "create" | "update" | "show" | "index" | "destroy">
 }
 
 export default class RouteBuilder {
@@ -111,7 +111,14 @@ export default class RouteBuilder {
 	 * Registers an application resource
 	 */
 	resource(resourceName: string, options: RouteOptions & ResourceOptions = {}) {
-		const controllerName = pluralize.plural(resourceName)
+		const controllerNameSpace = this.#scope
+			?
+			this.#scope.startsWith("/")
+				? `${this.#scope.slice(1).split("/").join("::")}::`
+				: `${this.#scope.split("/").join("::")}::`
+			: ""
+
+		const controllerName = controllerNameSpace + pluralize.plural(resourceName)
 		const as = options.as || resourceName
 
 		// Creating a new resource
@@ -128,6 +135,11 @@ export default class RouteBuilder {
 		}
 		if (!options.except?.includes("update")) {
 			this.put(`${resourceName}/:id`, `${controllerName}#update`, { as: `update_${as}` })
+		}
+
+		// Destroying a resource
+		if (!options.except?.includes("destroy")) {
+			this.post(`${resourceName}/:id`, `${controllerName}#destroy`, { as: `destroy_${as}` })
 		}
 
 		// Viewing a resource

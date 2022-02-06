@@ -6,14 +6,26 @@ export const before = (event: HookType): MethodDecorator => {
 	return (target, propertyKey) => {
 		const Class = (target.constructor as typeof Base)
 
-		Class.hooks.before(event, propertyKey as ModelMethods<unknown>)
+		Class.before(event, propertyKey as ModelMethods<unknown>)
 	}
 }
+
+export const beforeSave = () => before("save")
+export const beforeCreate = () => before("create")
+export const beforeUpdate = () => before("update")
+export const beforeValidation = () => before("validation")
+export const beforeDestroy = () => before("destroy")
 
 export const after = (event: HookType): MethodDecorator => {
 	return (target, propertyKey) => {
 		const Class = (target.constructor as typeof Base)
 
-		Class.hooks.after(event, propertyKey as ModelMethods<unknown>)
+		Class.after(event, propertyKey as ModelMethods<unknown>)
 	}
 }
+
+export const afterSave = () => after("save")
+export const afterCreate = () => after("create")
+export const afterUpdate = () => after("update")
+export const afterValidation = () => after("validation")
+export const afterDestroy = () => after("destroy")

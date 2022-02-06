@@ -1,7 +1,12 @@
 import { FastifyReply, FastifyRequest } from "fastify"
 
-import { ViewEngine } from "./types"
+import AeroSupport from "@aero/aero-support"
+
 import Parameters from "./Parameters"
+import Hooks, { Hook } from "./Hooks"
+import { ViewEngine } from "./types"
+import AeroWeb from "./AeroWeb"
+import RouteBuilder from "./RouteBuilder"
 
 export type ControllerConstructor = {
 	new(
@@ -11,10 +16,36 @@ export type ControllerConstructor = {
 		req: FastifyRequest,
 		res: FastifyReply
 	): Controller
+	mount?: (r: RouteBuilder) => void
 }
 
 export default class Controller {
 	static layout = "application"
+
+	static _controllerName: string
+
+	static set controllerName(newName) {
+		this._controllerName = newName
+	}
+	static get controllerName() {
+		return this._controllerName ||= AeroSupport.Helpers.toSnakeCase(this.name).split("_controller")[0] || ""
+	}
+
+	static beforeAction<TController extends Controller>(hook: Hook<TController>) {
+		this._hooks.addHook("before", hook)
+		return undefined
+	}
+
+	static afterAction<TController extends Controller>(hook: Hook<TController>) {
+		this._hooks.addHook("after", hook)
+		return undefined
+	}
+
+	static callHooks<TController extends Controller>(type: "before" | "after", instance: TController, controllerAction: string) {
+		return this._hooks.call(type, instance, controllerAction)
+	}
+
+	static _hooks = new Hooks<any>()
 
 	controllerName: string
 	viewEngine: ViewEngine
@@ -54,15 +85,36 @@ export default class Controller {
 	}
 
 	renderPartial = (partialName: string, data: Record<string, unknown>) => {
-		const fullPartialName = `pages/${this.controllerName.replace("::", "/")}/partials/${partialName}`
+		let templateName: string
 
-		return this.viewEngine.render(fullPartialName, {
+		// Handle absolute path
+		if (partialName.startsWith("/")) {
+			templateName = partialName.slice(1) // Just strip the prefixed /
+		} else {
+			templateName = `pages/${this.controllerName.replace("::", "/")}/partials/${partialName}`
+		}
+
+		return this.viewEngine.render(templateName, {
 			...this.viewLocals,
 			...data,
 		})
 	}
 
-	get redirectTo() { return this.res.redirect }
+	redirectTo(url: string, code = 303) {
+		this.res.code(code)
+		this.res.header("location", url)
+		this.res.send()
+	}
+
+	get logger() {
+		return AeroWeb.logger.bind({
+			reqId: this.req.id,
+		})
+	}
+
+	get session() { return this.req.session }
+
+	get status() { return this.res.status }
 
 	get viewLocals() {
 		return {

@@ -89,12 +89,14 @@ export default abstract class Application implements IApplication {
 
 		await this.controllers.load(
 			Aero.root.join("app/controllers"),
-			Aero.logger.fatal,
+			(e) => console.log(e),
 		)
 
 		await this.viewEngine.load(
 			Aero.root.join(Aero.config.viewDir),
 		)
+
+		AeroMailer.logger = Aero.logger
 
 		AeroMailer.viewEngine = new (this.viewEngine.constructor as { new(): ViewEngine })
 
@@ -102,10 +104,11 @@ export default abstract class Application implements IApplication {
 			Aero.root.join("app/mails"), // TODO: Make a configuration option
 		)
 
-		await this.assetPipeline.compile().then(() => {
-			Aero.logger.info("Frontend assets compiled ...")
-			this.viewHelpers = new ViewHelpers(this.assetPipeline.assetManifest)
-		})
+		await this.assetPipeline.compile()
+
+		Aero.logger.debug("Frontend assets compiled ...")
+
+		this.viewHelpers = new ViewHelpers(this.assetPipeline.assetManifest)
 	}
 
 	/**
@@ -128,6 +131,8 @@ export default abstract class Application implements IApplication {
 	 * ```
 	 */
 	async initDB() {
+		Aero.logger.trace("Connecting to AeroRecord database")
+
 		AeroRecord.logger = Aero.logger
 		AeroRecord.establishConnection(
 			this.env.toString(),
@@ -140,7 +145,7 @@ export default abstract class Application implements IApplication {
 ******************************
 	Starting Aero server
 	------------------------------
-	URL          | http://${Aero.config.web.host}:${Aero.config.web.port}
+	URL          | ${Aero.config.web.currentDomain()}
 	Environment  | ${this.env.toString()}
 	Version      | ${version}
 ******************************`)

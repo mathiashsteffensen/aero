@@ -1,17 +1,16 @@
-import Base from "../Base"
-import { ModelAttributes } from "../types"
+import { BaseInterface, ModelAttributes } from "../types"
 
-export default class Changes<TRecord extends Base<TRecord>> {
+export default class Changes<TRecord extends BaseInterface> {
 	/**
 	 * @internal
 	 */
-	static proxifyModel<TRecord extends Base<TRecord>>(model: TRecord) {
+	static proxifyModel<TRecord extends BaseInterface>(model: TRecord) {
 		return new Proxy(model, {
-			set(target: Base<TRecord>, property: string | symbol, value: unknown) {
+			set(target, property, value: unknown) {
 				target
 					.changes
 					.recordChanges(
-						<ModelAttributes<TRecord>>property,
+						property as string,
 						target.__send__(property) as TRecord[ModelAttributes<TRecord>],
 						value as TRecord[ModelAttributes<TRecord>],
 					)

@@ -17,7 +17,9 @@ describe("Base", () => {
 
 		describe("with custom table name", function () {
 			class DummyModel extends AeroRecord.Base<DummyModel> {
-				static tableName = "users"
+				static get tableName() {
+					return "users"
+				}
 			}
 
 			it("uses the custom table name", () => {

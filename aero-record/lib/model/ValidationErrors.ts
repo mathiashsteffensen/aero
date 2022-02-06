@@ -1,6 +1,6 @@
-import Base from "../Base"
+import { BaseInterface } from "../types"
 
-export default class ValidationErrors<TRecord extends Base<TRecord>> extends Map<keyof TRecord, Array<Error>> {
+export default class ValidationErrors<TRecord extends BaseInterface> extends Map<keyof TRecord, Array<Error>> {
 	add(property: keyof TRecord, ...errors: Array<Error>) {
 		const existingErrors = this.get(property) || []
 

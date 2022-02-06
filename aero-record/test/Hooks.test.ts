@@ -1,16 +1,12 @@
 import { expect } from "chai"
 
-import Hooks from "../lib/model/Hooks"
 import { HookOptions, ModelMethods } from "../lib/types"
 import Base from "../lib/Base"
+import { Hooks } from "../lib/model"
 
 describe("AeroRecord", () => {
 	describe(".Base", () => {
 		describe("#hooks", () => {
-			let hooks: Hooks
-
-			beforeEach(() => hooks = new Hooks())
-
 			describe("#callHooks", () => {
 				class Dummy extends Base<Dummy> {
 					calledSetId = 0
@@ -28,11 +24,13 @@ describe("AeroRecord", () => {
 				let options: HookOptions<typeof dummyModel>
 
 				beforeEach(async () => {
+					Hooks.reset(Dummy.tableName)
+
 					dummyModel = Dummy.new<Dummy>()
 
-					hooks.before("save", method, options)
+					Dummy.before("save", method, options)
 
-					await hooks.callHooks(dummyModel)("before", "save")
+					await dummyModel.callHooks("before", "save")
 				})
 
 				context("when a single hook is registered", () => {

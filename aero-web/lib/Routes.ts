@@ -6,7 +6,7 @@ import RouteHelpers from "./RouteHelpers"
 import Server from "./Server"
 
 import { RouteHandler, RouteSpecification, RouteState, ViewEngine } from "./types"
-
+import AeroWeb from "./AeroWeb"
 
 export default class Routes {
 	/**
@@ -122,6 +122,12 @@ export default class Routes {
 			const { controller, action } = this.specToControllerAndAction(spec)
 
 			return async (req, res) => {
+				AeroWeb.logger.debug(
+					`${req.method.toUpperCase()} ${req.url} being processed by ${controller[0]?.toUpperCase() + controller.slice(1)}Controller#${action}`,
+				)
+
+				const ControllerClass = this.#controllers.get(controller) as typeof Controller
+
 				const controllerInstance = this.#controllers.new(
 					controller,
 					action,
@@ -133,11 +139,18 @@ export default class Routes {
 					req,
 					res,
 				)
-				const actionResponse = await (controllerInstance[action as keyof Controller] as () => unknown | (() => Promise<unknown>))()
+
+				// Call before action hooks
+				await ControllerClass.callHooks("before", controllerInstance, action)
+
+				const actionResponse = await (controllerInstance[action as keyof Controller] as (params: unknown) => unknown | ((params: unknown) => Promise<unknown>))(req.params)
+
+				// Call after action hooks
+				await ControllerClass.callHooks("after", controllerInstance, action)
 
 				// If the action didn't provide a response,
 				// try to render the template corresponding to the controller and action name
-				if (!actionResponse) {
+				if (!actionResponse && !res.sent) {
 					return await controllerInstance.render(action)
 				}
 

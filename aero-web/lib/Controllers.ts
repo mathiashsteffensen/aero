@@ -4,6 +4,8 @@ import { FastifyReply, FastifyRequest } from "fastify"
 import Controller, { ControllerConstructor } from "./Controller"
 
 import { ViewEngine } from "./types"
+import Routes from "./Routes"
+import AeroWeb from "./AeroWeb"
 
 const toSnakeCase = (s: string) =>
 	s[0]?.toLowerCase() + s.slice(1).replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
@@ -13,6 +15,10 @@ export default class Controllers {
 
 	set(name: string, controller: ControllerConstructor) {
 		this.#state.set(name, controller)
+	}
+
+	get(name: string) {
+		return this.#state.get(name)
 	}
 
 	// TODO: Clean up this shitty controller parsing - a couple comments wouldn't hurt
@@ -83,7 +89,7 @@ export default class Controllers {
 		const ControllerClass = this.#state.get(controllerName)
 
 		if (!ControllerClass) {
-			throw new Error(`Controller with name ${controllerName} not found, loaded controllers are \n${Object.keys(this.#state).join("\n")}`)
+			throw new Error(`Controller with name ${controllerName} not found, loaded controllers are ${Object.keys(this.#state)}`)
 		}
 
 		const controller = new ControllerClass(
@@ -127,5 +133,19 @@ export default class Controllers {
 		this.check(controllerName, action)
 
 		return new (controller as ControllerConstructor)(controllerName, viewEngine, viewHelpers, req, res)
+	}
+
+	mount(routes: Routes) {
+		routes.draw((r) => {
+			for (const [controllerName, controller] of this.#state) {
+				if (!controller) continue
+
+				if (typeof controller.mount === "function") {
+					AeroWeb.logger.trace(`Mounting ${controllerName} controller`)
+
+					controller.mount(r)
+				}
+			}
+		})
 	}
 }

@@ -1,8 +1,6 @@
-import { OptionalPick } from "./OptionalPick"
-import { ModelAttributes } from "./ModelAttributes"
-import Base from "../Base"
+import { OptionalPick, ModelAttributes, BaseInterface } from "."
 
-export type ConstructorArgs<TRecord extends Base<TRecord>> = OptionalPick<
+export type ConstructorArgs<TRecord extends BaseInterface> = OptionalPick<
   TRecord,
   ModelAttributes<TRecord>
 >

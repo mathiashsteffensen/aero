@@ -19,25 +19,56 @@ const inferNameFromPath = (path: string) => {
 	return name.replaceAll("-", "_")
 }
 
+export class RouteString extends String {
+	#parsed: URL
+
+	get protocol() {
+		return this.#parsed.protocol
+	}
+
+	get path() {
+		return this.#parsed.pathname
+	}
+
+	get host() {
+		return this.#parsed.host
+	}
+
+	toString() {
+		return this.full
+	}
+
+	constructor(public full: string) {
+		super()
+		this.#parsed = new URL(full)
+	}
+}
+
 export default class RouteHelpers {
 
-	[name: string]: (replacements?: Record<string, unknown>) => string
+	[name: string]: (replacements?: Record<string, unknown>) => RouteString
 
 	constructor(routes: RouteState) {
 		for (const route of routes) {
-			this[route.options.as || inferNameFromPath(route.path)] = (replacements: Record<string, unknown> = {}) => {
-				let constructedPath = route.path
+			const name = route.options.as || inferNameFromPath(route.path)
 
-				for (const replacementsKey in replacements) {
-					const replacementValue = (replacements[replacementsKey] as { toString: () => string }).toString()
-					constructedPath = constructedPath.replace(
-						`:${replacementsKey}`,
-						replacementValue,
-					)
-				}
+			this[name] = this.#generateRouteGetter(route)
+		}
+	}
 
-				return `${AeroWeb.config.currentDomain()}${constructedPath}`
+	#generateRouteGetter(route: RouteState[0]) {
+		return (replacements: Record<string, unknown> = {}) => {
+			let constructedPath = route.path
+
+			for (const replacementsKey in replacements) {
+				const replacementValue = (replacements[replacementsKey] as { toString: () => string }).toString()
+				constructedPath = constructedPath.replace(
+					`:${replacementsKey}`,
+					replacementValue,
+				)
 			}
+
+			return new RouteString(`${AeroWeb.config.currentDomain()}${constructedPath}`)
 		}
 	}
 }

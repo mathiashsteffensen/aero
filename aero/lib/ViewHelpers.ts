@@ -54,4 +54,26 @@ export default class ViewHelpers {
 
 		return this.scriptTag(`/${scriptHref}`)
 	}
+
+	linkTo = (text: string, url: string, options: { class?: string, } = {}) => (`
+		<a 
+			class="${options.class || ""}"
+			href="${url}"
+		>
+			${text}
+		</a>
+	`)
+
+	buttonTo = (text: string, url: string, options: { class?: string, method?: string } = {}) => (`
+		<form
+			action="${url}"
+			method="${options.method || "POST"}"
+		>
+			<button
+				class="${options.class || ""}"
+			>
+				${text}
+			</button>
+		</form>	
+	`)
 }
