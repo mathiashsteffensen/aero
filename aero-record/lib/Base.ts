@@ -8,7 +8,7 @@ import * as Errors from "./Errors"
 import * as Helpers from "./Helpers"
 import { Changes, Hooks, ValidationErrors, Validator } from "./model"
 import Query from "./Query"
-import Relation from "./Relation"
+import Relation from "./Relations"
 
 import {
 	ConstructorArgs,
@@ -24,6 +24,7 @@ const privateAttributes = {
 	isPersisted: Symbol("isPersisted"),
 	changes: Symbol("changes"),
 	errors: Symbol("errors"),
+	callHooks: Symbol("callHooks"),
 }
 
 export type DefaultBase<T = unknown> = Record<string, T> & Base<DefaultBase>
@@ -97,6 +98,23 @@ export default class Base<TRecord extends BaseInterface> extends BasicObject imp
 	}
 
 	static validators: Array<Validator<DefaultBase>> = []
+
+	/**
+	 * @internal
+	 */
+	static get inheritedModels() {
+		const models: Array<typeof Base> = []
+
+		let currentModel = Object.getPrototypeOf(this.prototype.constructor)
+		while (currentModel) {
+			if (currentModel === Base) break
+			models.push(currentModel as typeof Base)
+
+			currentModel = Object.getPrototypeOf(currentModel)
+		}
+
+		return models
+	}
 
 	/**
 	 * Instantiate a new query for this model
@@ -399,7 +417,15 @@ export default class Base<TRecord extends BaseInterface> extends BasicObject imp
 	}
 
 	get callHooks(): (timing: "before" | "after", event: HookType) => void {
-		return Hooks.callHooks<BaseInterface>(this)
+		const existing = (this.__send__(privateAttributes.callHooks) as (timing: "before" | "after", event: HookType) => void)
+
+		if (existing) return existing
+
+		const newFunction = Hooks.callHooks(this)
+
+		this.__set__(privateAttributes.callHooks, newFunction)
+
+		return newFunction
 	}
 
 	/**

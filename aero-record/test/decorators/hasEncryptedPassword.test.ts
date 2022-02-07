@@ -15,7 +15,6 @@ describe("AeroRecord", () => {
 				})
 
 				beforeEach(async () => {
-					await dummyModel.setId()
 					await dummyModel.save()
 				})
 

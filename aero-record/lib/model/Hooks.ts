@@ -7,10 +7,10 @@ import { BaseInterface, HookAction, HookOptions, HookState, HookType, ModelMetho
  * Provides lifecycle hook functionality to AeroRecord models
  */
 export default abstract class Hooks {
-	static #state = new HookState<Record<string | symbol | number, unknown>>()
+	static state = new HookState<Record<string | symbol | number, unknown>>()
 
 	static reset(tableName: string) {
-		this.#state.set(
+		this.state.set(
 			tableName,
 			{
 				before: {
@@ -32,11 +32,11 @@ export default abstract class Hooks {
 	}
 
 	static get(tableName: string, timing: "before" | "after", event: HookType) {
-		if (!this.#state.has(tableName)) {
+		if (!this.state.has(tableName)) {
 			this.reset(tableName)
 		}
 
-		return this.#state.get(tableName)![timing][event]
+		return this.state.get(tableName)![timing][event]
 	}
 
 	static add(
@@ -151,23 +151,27 @@ export default abstract class Hooks {
    * @internal
    */
 	static callHooks<TRecord extends BaseInterface>(model: TRecord) {
-		const tableName = (model.constructor as typeof Base).tableName
+		const Class = (model.constructor as typeof Base)
+
+		const inheritedTableNames = Class.inheritedModels.map(m => m.tableName)
 
 		return async (timing: "before" | "after", event: HookType) => {
-			for (const hook of this.get(tableName, timing, event)) {
-				const shouldCallHook = await this.shouldCallHook<TRecord>(model, hook as unknown as HookAction<TRecord>)
+			for (const tableName of [...new Set(inheritedTableNames.concat([Class.tableName]))]) {
+				for (const hook of this.get(tableName, timing, event)) {
+					const shouldCallHook = await this.shouldCallHook<TRecord>(model, hook as unknown as HookAction<TRecord>)
 
-				if (!shouldCallHook) {
-					continue
-				}
+					if (!shouldCallHook) {
+						continue
+					}
 
-				if (typeof hook.action === "function") {
-					await hook.action(model as Record<string, unknown>)
-					continue
-				}
+					if (typeof hook.action === "function") {
+						await hook.action(model as Record<string, unknown>)
+						continue
+					}
 
-				if (model.attributeIsMethod(hook.action as ModelMethods<TRecord>)) {
-					await model.__send_func__(hook.action as ModelMethods<TRecord>)
+					if (model.attributeIsMethod(hook.action as ModelMethods<TRecord>)) {
+						await model.__send_func__(hook.action as ModelMethods<TRecord>)
+					}
 				}
 			}
 		}

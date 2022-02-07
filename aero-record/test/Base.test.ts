@@ -28,6 +28,21 @@ describe("Base", () => {
 		})
 	})
 
+	describe(".inheritedModels", () => {
+		context("when only inheriting from Base", () => {
+			it("returns an empty array", () => {
+				expect(BaseDummyModel.inheritedModels).to.be.empty
+			})
+		})
+
+		context("when inheriting from another base model from Base", () => {
+			it("returns the other base model", () => {
+				expect(DummyModel.inheritedModels.length).to.be.eq(1)
+				expect(DummyModel.inheritedModels[0]).to.be.eq(BaseDummyModel)
+			})
+		})
+	})
+
 	describe(".new", () => {
 		let params: ConstructorArgs<DummyModel>
 		let dummyModel: DummyModel

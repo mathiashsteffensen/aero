@@ -42,6 +42,9 @@ export default class Server {
 
 		this.fastify.register(fastifySecureSession, {
 			key: fs.readFileSync(AeroWeb.config.secretKeyFile),
+			cookie: {
+				maxAge: Infinity,
+			},
 		})
 
 		// Add request logging

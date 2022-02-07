@@ -4,7 +4,7 @@ import AeroSupport from "@aero/aero-support"
 
 import Parameters from "./Parameters"
 import Hooks, { Hook } from "./Hooks"
-import { ViewEngine } from "./types"
+import { ViewEngine, Public } from "./types"
 import AeroWeb from "./AeroWeb"
 import RouteBuilder from "./RouteBuilder"
 
@@ -52,7 +52,7 @@ export default class Controller {
 	viewHelpers: Record<string, unknown>
 	req: FastifyRequest
 	res: FastifyReply
-	params: Parameters
+	params: Public<Parameters>
 
 	constructor(
 		controllerName: string,

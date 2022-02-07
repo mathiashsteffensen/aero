@@ -35,6 +35,10 @@ export default class AuthenticatableRecordController extends BaseController {
     }
   }
 
+  async successAction(): Promise<unknown> {
+    return this.render("show")
+  }
+
   record!: AuthenticatableRecord<any>
 
   static mount(r: RouteBuilder) {
@@ -81,7 +85,7 @@ export default class AuthenticatableRecordController extends BaseController {
         confirmEmailLink: Aero.routes.make.confirm_email?.(),
       })
 
-      return this.render("show")
+      return this.successAction()
     } else {
       this.res.status(400)
       return this.render("new")
