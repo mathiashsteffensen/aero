@@ -6,6 +6,7 @@ import { Cache } from "@aero/aero-support/lib/interfaces"
 import { ViewEngine } from "@aero/aero-web/dist/typings/types"
 
 import Aero from "./Aero"
+import { FormConfig } from "./types"
 
 export default class Config {
 	// Core config
@@ -40,10 +41,12 @@ export default class Config {
 	get viewEngine() { return Aero.application.viewEngine }
 
 	// Form config
-	aeroForm = {
+	aeroForm: FormConfig = {
+		formClass: "",
 		inputClass: "",
 		inputWrapperClass: "",
 		buttonClass: "",
 		errorFeedbackClass: "",
+		variants: {},
 	}
 }

@@ -94,6 +94,7 @@ export default class Controllers {
 
 		const controller = new ControllerClass(
 			controllerName,
+			action,
 			{
 				async render() { return "" },
 				async load(viewDir: string) {
@@ -132,7 +133,7 @@ export default class Controllers {
 
 		this.check(controllerName, action)
 
-		return new (controller as ControllerConstructor)(controllerName, viewEngine, viewHelpers, req, res)
+		return new (controller as ControllerConstructor)(controllerName, action, viewEngine, viewHelpers, req, res)
 	}
 
 	mount(routes: Routes) {

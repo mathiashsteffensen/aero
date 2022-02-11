@@ -128,7 +128,7 @@ export default class Routes {
 
 				const ControllerClass = this.#controllers.get(controller) as typeof Controller
 
-				const controllerInstance = this.#controllers.new(
+				const controllerInstance = new ControllerClass(
 					controller,
 					action,
 					this.#viewEngine,
@@ -141,12 +141,12 @@ export default class Routes {
 				)
 
 				// Call before action hooks
-				await ControllerClass.callHooks("before", controllerInstance, action)
+				await ControllerClass.callHooks("before", controllerInstance)
 
 				const actionResponse = await (controllerInstance[action as keyof Controller] as (params: unknown) => unknown | ((params: unknown) => Promise<unknown>))(req.params)
 
 				// Call after action hooks
-				await ControllerClass.callHooks("after", controllerInstance, action)
+				await ControllerClass.callHooks("after", controllerInstance)
 
 				// If the action didn't provide a response,
 				// try to render the template corresponding to the controller and action name

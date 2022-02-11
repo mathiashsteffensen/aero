@@ -14,6 +14,7 @@ export default class HasOne<
 
 	new = this.newByForeignKey
 	create = this.createByForeignKey
+	update = this.updateByForeignKey
 
 	then(onFulfilled: (record: TForeignRecord | undefined) => unknown, onRejected?: (err: unknown) => unknown) {
 		return this

@@ -55,9 +55,7 @@ export default class Validator<TRecord extends Base<TRecord>> {
 			} as QueryParams<TRecord>)
 		}
 
-		conflictingRecord = await conflictingRecord.first()
-
-		if (conflictingRecord) {
+		if (await conflictingRecord.first()) {
 			return new RecordNotUnique(`${this.Model.name} with ${property} ${instance[property]} already exists`)
 		}
 

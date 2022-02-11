@@ -16,7 +16,7 @@ class User extends AeroRecord.Base<User> {
 	createdAt?: Date
 	updatedAt?: Date
 
-@hasOne(DummyModel, { optional: true })
+@hasOne(() => DummyModel, { optional: true })
 	dummy!: HasOne<DummyModel>
 }
 

@@ -18,12 +18,12 @@ class DummyModel<TRecord extends DummyModel<TRecord>> extends BaseDummyModel<TRe
 }
 
 class OptionalDummyModel extends DummyModel<OptionalDummyModel> {
-	@belongsTo(User, { optional: true })
+	@belongsTo(() => User, { optional: true })
 		user!: BelongsTo<User>
 }
 
 class NotOptionalDummyModel extends DummyModel<OptionalDummyModel> {
-	@belongsTo(User)
+	@belongsTo(() => User)
 		user!: BelongsTo<User>
 }
 

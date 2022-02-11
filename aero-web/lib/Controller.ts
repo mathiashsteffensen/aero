@@ -1,16 +1,20 @@
 import { FastifyReply, FastifyRequest } from "fastify"
 
 import AeroSupport from "@aero/aero-support"
+import { HookAction } from "@aero/aero-support/dist/typings/Hooks"
 
-import Parameters from "./Parameters"
-import Hooks, { Hook } from "./Hooks"
-import { ViewEngine, Public } from "./types"
 import AeroWeb from "./AeroWeb"
+import Hooks from "./Hooks"
+import Parameters from "./Parameters"
+import { ViewEngine, Public } from "./types"
 import RouteBuilder from "./RouteBuilder"
+import Cookie from "./Cookie"
+
 
 export type ControllerConstructor = {
 	new(
 		controllerName: string,
+		processingAction: string,
 		viewEngine: ViewEngine,
 		viewHelpers: Record<string, unknown>,
 		req: FastifyRequest,
@@ -19,54 +23,36 @@ export type ControllerConstructor = {
 	mount?: (r: RouteBuilder) => void
 }
 
-export default class Controller {
+export default class Controller extends AeroSupport.BasicObject {
 	static layout = "application"
 
-	static _controllerName: string
-
-	static set controllerName(newName) {
-		this._controllerName = newName
-	}
 	static get controllerName() {
-		return this._controllerName ||= AeroSupport.Helpers.toSnakeCase(this.name).split("_controller")[0] || ""
+		return AeroSupport.Helpers.toSnakeCase(this.name).split("_controller")[0] || ""
 	}
 
-	static beforeAction<TController extends Controller>(hook: Hook<TController>) {
-		this._hooks.addHook("before", hook)
-		return undefined
+	static beforeAction<TController extends Controller>(hook: HookAction<TController>) {
+		Hooks.add(this.controllerName, "before", "action", hook as HookAction<Controller>)
 	}
 
-	static afterAction<TController extends Controller>(hook: Hook<TController>) {
-		this._hooks.addHook("after", hook)
-		return undefined
+	static afterAction<TController extends Controller>(hook: HookAction<TController>) {
+		Hooks.add(this.controllerName, "after", "action", hook as HookAction<Controller>)
 	}
 
-	static callHooks<TController extends Controller>(type: "before" | "after", instance: TController, controllerAction: string) {
-		return this._hooks.call(type, instance, controllerAction)
+	static callHooks<TController extends Controller>(type: "before" | "after", instance: TController) {
+		return Hooks.callHooks(instance)(type, "action")
 	}
-
-	static _hooks = new Hooks<any>()
-
-	controllerName: string
-	viewEngine: ViewEngine
-	viewHelpers: Record<string, unknown>
-	req: FastifyRequest
-	res: FastifyReply
-	params: Public<Parameters>
-
+	
 	constructor(
-		controllerName: string,
-		viewEngine: ViewEngine,
-		viewHelpers: Record<string, unknown>,
-		req: FastifyRequest,
-		res: FastifyReply,
+		public controllerName: string,
+		public processingAction: string,
+		public viewEngine: ViewEngine,
+		public viewHelpers: Record<string, unknown>,
+		public req: FastifyRequest,
+		public res: FastifyReply,
+		public params: Public<Parameters> = new Parameters(req),
+		public cookie: Public<Cookie> = new Cookie(req, res),
 	) {
-		this.controllerName = controllerName
-		this.viewEngine = viewEngine
-		this.viewHelpers = viewHelpers
-		this.req = req
-		this.res = res
-		this.params = new Parameters(this.req)
+		super()
 	}
 
 	async render(templateName: string) {

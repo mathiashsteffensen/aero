@@ -1,14 +1,17 @@
 import { Knex } from "knex"
 
+import BasicObject from "@aero/aero-support/lib/BasicObject"
+
 import { ConstructorArgs, Public, SaveOptions } from "."
 import { Changes, ValidationErrors } from "../model"
-import BasicObject from "../BasicObject"
+import { HookType } from "../model/Hooks"
 
 export interface BaseInterface extends BasicObject {
   /* BasicObject types */
   clone(): any
 
   /* Query methods */
+  primaryIdentifier: string
   save: (options: SaveOptions) => Promise<boolean>
   insert: (options: SaveOptions) => Promise<boolean>
   update: (options: SaveOptions) => Promise<boolean>
@@ -28,4 +31,5 @@ export interface BaseInterface extends BasicObject {
   errors: ValidationErrors<any>
   isPersisted: boolean
   isNewRecord: boolean
+  callHooks: (timing: "before" | "after", type: HookType) => Promise<void>
 }

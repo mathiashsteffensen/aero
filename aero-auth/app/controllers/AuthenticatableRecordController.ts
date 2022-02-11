@@ -127,7 +127,7 @@ export default class AuthenticatableRecordController extends BaseController {
       return
     }
 
-    this.session.set("auth-token", token)
+    this.cookie.set("auth-token", token!)
 
     this.redirectTo(Aero.routes.make.user!().full)
   }
@@ -135,7 +135,7 @@ export default class AuthenticatableRecordController extends BaseController {
   async logout() {
     await this.auth.requireAuthentication()
 
-    this.session.delete()
+    this.cookie.clear("auth-token")
 
     await Aero.cache.delete(this.auth.token!)
 

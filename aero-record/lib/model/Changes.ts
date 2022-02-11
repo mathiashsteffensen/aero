@@ -1,4 +1,5 @@
 import { BaseInterface, ModelAttributes } from "../types"
+import Relation from "../Relations"
 
 export default class Changes<TRecord extends BaseInterface> {
 	/**
@@ -45,6 +46,8 @@ export default class Changes<TRecord extends BaseInterface> {
 		oldValue: TRecord[ModelAttributes<TRecord>],
 		newValue: TRecord[ModelAttributes<TRecord>],
 	) {
+		if (newValue instanceof Relation) return
+
 		if (newValue === oldValue) {
 			return
 		}

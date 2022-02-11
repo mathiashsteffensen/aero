@@ -87,14 +87,20 @@ export default abstract class Application implements IApplication {
 			staticDirPathPrefix: `/${Aero.config.staticDir}/`,
 		})
 
+		Aero.logger.trace("Loading controllers")
+
 		await this.controllers.load(
 			Aero.root.join("app/controllers"),
 			(e) => console.log(e),
 		)
 
+		Aero.logger.trace("Loading views")
+
 		await this.viewEngine.load(
 			Aero.root.join(Aero.config.viewDir),
 		)
+
+		Aero.logger.trace("Initializing AeroMailer")
 
 		AeroMailer.logger = Aero.logger
 
@@ -106,7 +112,7 @@ export default abstract class Application implements IApplication {
 
 		await this.assetPipeline.compile()
 
-		Aero.logger.debug("Frontend assets compiled ...")
+		Aero.logger.info("Frontend assets compiled ...")
 
 		this.viewHelpers = new ViewHelpers(this.assetPipeline.assetManifest)
 	}

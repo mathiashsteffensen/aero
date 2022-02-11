@@ -30,6 +30,7 @@ export default class Hooks<
 	state = new HookState<TTarget, HookType>()
 	constructor(
 		private extractor: (TargetClass: TClass) => string,
+		private onHook?: (hook: HookAction<TTarget> & { timing: "before" | "after", type: HookType }, instance: TTarget) => void,
 	) {}
 
 	reset(name: string, timing?: "before" | "after", type?: HookType) {
@@ -54,6 +55,8 @@ export default class Hooks<
 	}
 
 	get(name: string, timing: "before" | "after", type: HookType) {
+		if (!this.state.has(name)) this.reset(name)
+
 		if (!this.state.get(name)?.[timing].has(type)) {
 			this.reset(name, timing, type)
 		}
@@ -154,7 +157,7 @@ export default class Hooks<
 
 		if (hook.options.unless) {
 			if (typeof hook.options.unless === "function") {
-				shouldCallHook = await hook.options.unless(model)
+				shouldCallHook = !await hook.options.unless(model)
 			} else {
 				if (model.attributeIsMethod(hook.options.unless)) {
 					shouldCallHook = !await model.__send_func__(hook.options.unless)
@@ -171,16 +174,28 @@ export default class Hooks<
    * @internal
    */
 	callHooks(model: TTarget) {
-		const inheritedNames = model.walkPrototypeChain(this.extractor)
+		const inheritedNames = model
+			.walkPrototypeChain(
+				this.extractor,
+			)
+			.concat(
+				[this.extractor(model.class() as unknown as TClass)],
+			)
+			.filter(Boolean)
 
 		return async (timing: "before" | "after", event: HookType) => {
-			for (const tableName of [...new Set(inheritedNames)]) {
-				for (const hook of this.get(tableName, timing, event)) {
+			for (const name of [...new Set(inheritedNames)]) {
+				for (const hook of this.get(name, timing, event)) {
 					const shouldCallHook = await this.shouldCallHook(model, hook)
-
 					if (!shouldCallHook) {
 						continue
 					}
+
+					this.onHook?.({
+						...hook,
+						timing,
+						type: event,
+					}, model)
 
 					if (typeof hook.action === "function") {
 						await hook.action(model)

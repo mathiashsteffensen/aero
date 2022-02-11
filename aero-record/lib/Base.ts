@@ -2,8 +2,10 @@ import { Knex } from "knex"
 import ResolveTableType = Knex.ResolveTableType
 import pluralize from "pluralize"
 
+import AeroSupport from "@aero/aero-support"
+import BasicObject from "@aero/aero-support/dist/typings/BasicObject"
+
 import AeroRecord from "./AeroRecord"
-import BasicObject from "./BasicObject"
 import * as Errors from "./Errors"
 import * as Helpers from "./Helpers"
 import { Changes, Hooks, ValidationErrors, Validator } from "./model"
@@ -13,12 +15,14 @@ import Relation from "./Relations"
 import {
 	ConstructorArgs,
 	DEFAULT_SAVE_OPTIONS,
-	HookType,
 	ModelAttributes,
 	QueryResult,
 	SaveOptions,
-	BaseInterface, Public,
+	BaseInterface,
+	Public,
 } from "./types"
+import { HookType } from "./model/Hooks"
+import { HookAction, HookOptions } from "@aero/aero-support/dist/typings/Hooks"
 
 const privateAttributes = {
 	isPersisted: Symbol("isPersisted"),
@@ -34,7 +38,7 @@ export type DefaultBase<T = unknown> = Record<string, T> & Base<DefaultBase>
  *
  * @public
  */
-export default class Base<TRecord extends BaseInterface> extends BasicObject implements BaseInterface {
+export default class Base<TRecord extends BaseInterface> extends AeroSupport.BasicObject implements BaseInterface {
 
 	/**
 	 * The table name used when performing queries with this model.
@@ -89,12 +93,20 @@ export default class Base<TRecord extends BaseInterface> extends BasicObject imp
 		return this.class<typeof Base>().primaryIdentifier
 	}
 
-	static get before() {
-		return Hooks.before(this.tableName)
+	static before<TRecord extends BaseInterface>(
+		type: HookType,
+		methods: HookAction<TRecord>["action"] | Array<HookAction<TRecord>["action"]>,
+		options: HookOptions<TRecord> = {},
+	) {
+		return Hooks.before(this.tableName)(type, methods as unknown as keyof Base<any>, options as HookOptions<Record<string, unknown>>)
 	}
 
-	static get after() {
-		return Hooks.after(this.tableName)
+	static after<TRecord extends BaseInterface>(
+		type: HookType,
+		methods: HookAction<TRecord>["action"] | Array<HookAction<TRecord>["action"]>,
+		options: HookOptions<TRecord> = {},
+	) {
+		return Hooks.after(this.tableName)(type, methods as unknown as keyof Base<any>, options as HookOptions<Record<string, unknown>>)
 	}
 
 	static validators: Array<Validator<DefaultBase>> = []
@@ -122,9 +134,7 @@ export default class Base<TRecord extends BaseInterface> extends BasicObject imp
 	 * @internal
 	 */
 	get query() {
-		return AeroRecord
-			.connection
-			.knex((this.class<typeof Base>()).tableName)
+		return (this.class<typeof Base>()).query()
 	}
 
 	/**
@@ -416,12 +426,12 @@ export default class Base<TRecord extends BaseInterface> extends BasicObject imp
 		return !this.__send__(privateAttributes.isPersisted) as boolean
 	}
 
-	get callHooks(): (timing: "before" | "after", event: HookType) => void {
-		const existing = (this.__send__(privateAttributes.callHooks) as (timing: "before" | "after", event: HookType) => void)
+	get callHooks(): (timing: "before" | "after", event: HookType) => Promise<void> {
+		const existing = (this.__send__(privateAttributes.callHooks) as (timing: "before" | "after", event: HookType) => Promise<void>)
 
 		if (existing) return existing
 
-		const newFunction = Hooks.callHooks(this)
+		const newFunction = Hooks.callHooks(this as Record<string, unknown> & BasicObject)
 
 		this.__set__(privateAttributes.callHooks, newFunction)
 
@@ -445,6 +455,8 @@ export default class Base<TRecord extends BaseInterface> extends BasicObject imp
 		record = Changes.proxifyModel(record)
 
 		record.fromObject(params)
+
+		record.callHooks("after", "initialization")
 
 		return record
 	}

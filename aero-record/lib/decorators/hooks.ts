@@ -1,6 +1,7 @@
 import Base from "../Base"
 
-import { HookType, ModelMethods } from "../types"
+import { ModelMethods } from "../types"
+import { HookType } from "../model/Hooks"
 
 export const before = (event: HookType): MethodDecorator => {
 	return (target, propertyKey) => {

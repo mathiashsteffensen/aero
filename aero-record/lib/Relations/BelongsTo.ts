@@ -1,8 +1,9 @@
+import BasicObject from "@aero/aero-support/lib/BasicObject"
+
 import Base from "../Base"
 import Relation, { Options } from "./index"
 import pluralize from "pluralize"
 import { BaseInterface } from "../types"
-import BasicObject from "../BasicObject"
 
 const DEFAULT_OPTIONS = (Class: typeof Base) => ({
 	localKey: `${pluralize.singular(Class.tableName)}_id`,

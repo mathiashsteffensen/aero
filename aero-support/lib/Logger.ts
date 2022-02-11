@@ -40,14 +40,16 @@ export default class Logger implements pino.BaseLogger {
 		this.error = this.pinoDup("error")
 	}
 
-	fatal = (obj: unknown, msg?: string, ...args: any[]) => {
+	fatal(obj: unknown, msg?: string, ...args: any[]) {
 		this.instance.fatal(obj, msg, args)
 		process.exit()
 	}
 
-	bind = (obj: Record<string, unknown>) => {
+	bind(obj: Record<string, unknown>){
 		return new Logger(this.instance.child(obj))
 	}
+
+	child = this.bind.bind(this)
 
 	private shouldLog(level: pino.Level | "silent") {
 		return (pino.levels.values[level] || 0) >= (pino.levels.values[this.level] || 0)

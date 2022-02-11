@@ -1,18 +1,18 @@
 import pluralize from "pluralize"
 
-import Aero from "./Aero"
-
 import Base from "@aero/aero-record/dist/typings/Base"
-import { FormBuilderOptions } from "./types"
+
+import Aero from "./Aero"
+import { FormBuilderOptions, FormConfig } from "./types"
 
 export default class FormBuilder<TRecord extends Base<TRecord>> {
 	inputs: Array<string> = []
-	record: TRecord
 	options: FormBuilderOptions
 
-	constructor(record: TRecord, options: FormBuilderOptions) {
-		this.record = record
-
+	constructor(
+		private readonly record: TRecord,
+		options: FormBuilderOptions,
+	) {
 		options.path = options.path || this.inferredPathFromRecord || "/"
 		options.method = options.method || "POST"
 
@@ -33,24 +33,35 @@ export default class FormBuilder<TRecord extends Base<TRecord>> {
 		}
 	}
 
+	private get config() {
+		if (!this.options.variant) return Aero.config.aeroForm
+
+		return Aero.config.aeroForm.variants[this.options.variant]!
+	}
+
+	private getConfigValue(configKey: keyof Omit<FormConfig, "variants">) {
+		if (!this.config[configKey]) return Aero.config.aeroForm[configKey]
+
+		return this.config[configKey]
+	}
 
 	input(attribute: string, type: HTMLInputElement["type"] = "text") {
 		const id = `${pluralize(this.recordTableName, 1)}[${attribute}]`
 		const errors = this.record.errors.get(attribute as keyof TRecord) || []
 
 		this.inputs.push(`
-			<div class="${Aero.config.aeroForm.inputWrapperClass}">
+			<div class="${this.getConfigValue("inputWrapperClass")}">
 				<label for="${id}">
 					${attribute[0]?.toUpperCase()}${attribute.slice(1)}
 				</label>
 				<input
-					class="${Aero.config.aeroForm.inputClass}"
+					class="${this.getConfigValue("inputClass")}"
 					value="${this.record[attribute as keyof Base<TRecord>] || ""}"
 					name="${id}"
 					id="${id}"
 					type="${type}"
 				/>
-				${errors.length !== 0 ? `<div class="${Aero.config.aeroForm.errorFeedbackClass}">
+				${errors.length !== 0 ? `<div class="${this.getConfigValue("errorFeedbackClass")}">
 					${errors.map((err) => `<span>
 						${err.message}
 					</span>`)}
@@ -60,12 +71,12 @@ export default class FormBuilder<TRecord extends Base<TRecord>> {
 	}
 
 	button(text: string) {
-		this.inputs.push(`<button class="${Aero.config.aeroForm.buttonClass}">${text}</button>`)
+		this.inputs.push(`<button class="${this.getConfigValue("buttonClass")}">${text}</button>`)
 	}
 
 	render() {
 		return `
-			<form action="${this.options.path}" method="${this.options.method}" >
+			<form class="${this.getConfigValue("formClass")}" action="${this.options.path}" method="${this.options.method}" >
 				${this.inputs.join("\n")}
 			</form>
 		`

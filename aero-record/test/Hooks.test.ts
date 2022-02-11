@@ -1,6 +1,8 @@
 import { expect } from "chai"
 
-import { HookOptions, ModelMethods } from "../lib/types"
+import { HookOptions } from "@aero/aero-support/dist/typings/Hooks"
+
+import { ModelMethods } from "../lib/types"
 import Base from "../lib/Base"
 import { Hooks } from "../lib/model"
 
@@ -28,7 +30,7 @@ describe("AeroRecord", () => {
 
 					dummyModel = Dummy.new<Dummy>()
 
-					Dummy.before("save", method, options)
+					Dummy.before<Dummy>("save", method, options)
 
 					await dummyModel.callHooks("before", "save")
 				})

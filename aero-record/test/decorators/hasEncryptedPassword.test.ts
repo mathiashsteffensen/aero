@@ -15,7 +15,7 @@ describe("AeroRecord", () => {
 				})
 
 				beforeEach(async () => {
-					await dummyModel.save()
+					await dummyModel.save({ throwOnError: true })
 				})
 
 				it("hashes the password", async () => {

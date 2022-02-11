@@ -10,7 +10,7 @@ export class AuthHelper {
   }
 
   get token() {
-    return this.controller.session.get("auth-token") as string | undefined
+    return this.controller.cookie.get("auth-token")
   }
 
   async currentId() {

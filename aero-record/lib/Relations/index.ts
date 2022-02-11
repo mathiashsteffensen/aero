@@ -1,11 +1,14 @@
+import AeroSupport from "@aero/aero-support"
+import BasicObject from "@aero/aero-support/lib/BasicObject"
+
 import AeroRecord from "../AeroRecord"
+import { QueryParams } from "../Query"
 import Base from "../Base"
 import BelongsTo from "./BelongsTo"
-import { BaseInterface, ConstructorArgs, DEFAULT_SAVE_OPTIONS } from "../types"
-import { QueryParams } from "../Query"
-import AeroSupport from "@aero/aero-support"
-import BasicObject from "../BasicObject"
 import HasOne from "./HasOne"
+
+import { BaseInterface, ConstructorArgs, DEFAULT_SAVE_OPTIONS } from "../types"
+import HasMany from "./HasMany"
 
 export type KeyType = "foreignKey" | "key"
 
@@ -13,9 +16,9 @@ export interface Options<
   TForeignRecord extends BaseInterface,
   TRelation extends Relation<TForeignRecord, TRelation>
 > {
-  foreignKey?: TRelation extends HasOne<TForeignRecord> ? string : never
+  foreignKey?: TRelation extends HasOne<TForeignRecord> | HasMany<TForeignRecord> ? string : never
   localKey?: TRelation extends BelongsTo<TForeignRecord> ? string : never
-  optional?: TRelation extends BelongsTo<TForeignRecord> | HasOne<TForeignRecord> ? boolean : never
+  optional?: TRelation extends BelongsTo<TForeignRecord> | HasOne<TForeignRecord> | HasMany<TForeignRecord> ? boolean : never
 }
 
 export default class Relation<
@@ -38,12 +41,18 @@ export default class Relation<
 	}
 
 	protected _foreignKeyAttribute?: string
-	protected get foreignKeyAttribute() {
+	protected get foreignKeyAttribute(): string {
 		return this._foreignKeyAttribute ||= AeroSupport.Helpers.toCamelCase(this.options.foreignKey as string)
 	}
 
 	protected get foreignKey() {
-		return this.target.__send__(this.target.class<typeof Base>().primaryIdentifier) as string | number
+		return this.target.__send__((this.target.class() as typeof Base).primaryIdentifier) as string | number
+	}
+
+	protected queryByForeignKey() {
+		return this.Class.where<TForeignRecord>({
+			[this.options.foreignKey as string]: this.foreignKey,
+		} as unknown as ConstructorArgs<TForeignRecord>)
 	}
 
 	protected async findByLocalKey() {
@@ -67,11 +76,7 @@ export default class Relation<
 	}
 
 	protected async findByForeignKey(id?: string | number) {
-		let query = await this.Class.query<TForeignRecord>()
-
-		query = query.where({
-			[this.options.foreignKey as string]: this.foreignKey,
-		} as unknown as ConstructorArgs<TForeignRecord>)
+		let query = this.queryByForeignKey()
 
 		if (id) {
 			query = query.where({
@@ -90,23 +95,27 @@ export default class Relation<
 		return record
 	}
 
-	protected newByLocalKey(params: ConstructorArgs<TForeignRecord>) {
+	protected async allByForeignKey() {
+		return this.Class.where<TForeignRecord>({
+			[this.options.foreignKey as string]: this.foreignKey,
+		} as unknown as ConstructorArgs<TForeignRecord>).all()
+	}
+
+	protected newByLocalKey(params: ConstructorArgs<TForeignRecord> = {}) {
 		return this.Class.new<TForeignRecord>({
 			[this.Class.primaryIdentifier]: this.localKey,
 			...params,
 		})
 	}
 
-	protected newByForeignKey(params: ConstructorArgs<TForeignRecord>) {
-		console.log(this.foreignKeyAttribute)
-
+	protected newByForeignKey(params: ConstructorArgs<TForeignRecord> = {}) {
 		return this.Class.new<TForeignRecord>({
 			[this.foreignKeyAttribute]: this.foreignKey,
 			...params,
 		})
 	}
 
-	protected async createByLocalKey(params: ConstructorArgs<TForeignRecord>, options = DEFAULT_SAVE_OPTIONS) {
+	protected async createByLocalKey(params: ConstructorArgs<TForeignRecord> = {}, options = DEFAULT_SAVE_OPTIONS) {
 		const record = this.Class.new<TForeignRecord>(params)
 
 		if (this.localKey) {
@@ -125,11 +134,27 @@ export default class Relation<
 		return record
 	}
 
-	protected async createByForeignKey(params: ConstructorArgs<TForeignRecord>, options = DEFAULT_SAVE_OPTIONS) {
+	protected async createByForeignKey(params: ConstructorArgs<TForeignRecord> = {}, options = DEFAULT_SAVE_OPTIONS) {
 		const record = this.newByForeignKey(params)
 
 		await record.save(options)
 
 		return record
+	}
+
+	protected async updateByForeignKey(
+		params: ConstructorArgs<TForeignRecord> = {},
+		options = DEFAULT_SAVE_OPTIONS,
+		id?: string | number,
+	) {
+		const record = await this.findByForeignKey(id)
+
+		if (!record) throw new AeroRecord.Errors.RecordNotFound(
+			`${this.Class.name} with ${this.options.foreignKey} = '${this.foreignKey}'${id ? ` & ${this.Class.primaryIdentifier} = '${id}' not found` : ""}`,
+		)
+
+		record.updateAttributes(params)
+
+		return record.update(options)
 	}
 }
