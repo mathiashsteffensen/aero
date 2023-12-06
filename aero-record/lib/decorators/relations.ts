@@ -9,21 +9,41 @@ import HasOne from "../Relations/HasOne"
 import HasMany from "../Relations/HasMany"
 import { BaseInterface } from "../types"
 
-export const belongsTo = (ForeignClass: () => { new(): unknown }, options: Options<any, BelongsTo<any>> = {}) => {
+export const belongsTo = (ForeignClass: () => { new(): unknown }, options: Options<BaseInterface, BelongsTo<BaseInterface>> = {}) => {
 	return <TRecord extends BasicObject>(target: TRecord, propertyKey: keyof TRecord) => {
-		(target.class() as typeof Base).after("initialization", (instance) => {
+		const Class = (target.class() as typeof Base)
+
+		if (options.dependent) {
+			BelongsTo.attachDependencyHandler(
+				Class,
+				options.dependent,
+				propertyKey as string,
+			)
+		}
+
+		Class.after("initialization", (instance) => {
 			instance.__set__(
 				propertyKey,
-				new BelongsTo(instance, ForeignClass() as typeof Base, options),
+				new BelongsTo(propertyKey as string, instance, ForeignClass() as typeof Base, options),
 			)
 		})
 	}
 }
 
-export const hasOne = (ForeignClass: () => { new(): unknown }, options: Options<any, HasOne<any>> = {}) => {
+export const hasOne = (ForeignClass: () => { new(): unknown }, options: Options<BaseInterface, HasOne<BaseInterface>> = {}) => {
 	return <TRecord extends BaseInterface>(target: TRecord, propertyKey: keyof TRecord) => {
-		(target.class() as typeof Base).after("initialization", (instance) => {
-			instance.__set__(propertyKey, new HasOne(instance, ForeignClass() as typeof Base, {
+		const Class = (target.class() as typeof Base)
+
+		if (options.dependent) {
+			HasOne.attachDependencyHandler(
+				Class,
+				options.dependent,
+				propertyKey as string,
+			)
+		}
+
+		Class.after("initialization", (instance) => {
+			instance.__set__(propertyKey, new HasOne(propertyKey as string, instance, ForeignClass() as typeof Base, {
 				foreignKey: `${pluralize.singular((target.class() as typeof Base).tableName)}_id`,
 				...options,
 				localKey: undefined,
@@ -32,10 +52,20 @@ export const hasOne = (ForeignClass: () => { new(): unknown }, options: Options<
 	}
 }
 
-export const hasMany = (ForeignClass: () => { new(): unknown }, options: Options<any, HasOne<any>> = {}) => {
+export const hasMany = (ForeignClass: () => { new(): unknown }, options: Options<BaseInterface, HasOne<BaseInterface>> = {}) => {
 	return <TRecord extends BaseInterface>(target: TRecord, propertyKey: keyof TRecord) => {
-		(target.class() as typeof Base).after("initialization", (instance) => {
-			instance.__set__(propertyKey, new HasMany(instance, ForeignClass() as typeof Base, {
+		const Class = (target.class() as typeof Base)
+
+		if (options.dependent) {
+			HasMany.attachDependencyHandler(
+				Class,
+				options.dependent,
+				propertyKey as string,
+			)
+		}
+
+		Class.after("initialization", (instance) => {
+			instance.__set__(propertyKey, new HasMany(propertyKey as string, instance, ForeignClass() as typeof Base, {
 				foreignKey: `${pluralize.singular((target.class() as typeof Base).tableName)}_id`,
 				...options,
 				localKey: undefined,

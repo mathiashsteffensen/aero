@@ -68,6 +68,7 @@ export default class Controllers {
 	async load(
 		dir: string,
 		onError: (e: unknown) => void = (e: unknown) => {
+			// eslint-disable-next-line no-console
 			console.log(e)
 			throw e
 		},
@@ -98,6 +99,7 @@ export default class Controllers {
 			{
 				async render() { return "" },
 				async load(viewDir: string) {
+					// eslint-disable-next-line no-console
 					console.log(viewDir)
 				},
 			},

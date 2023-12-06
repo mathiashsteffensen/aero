@@ -1,17 +1,12 @@
 import { expect } from "chai"
 
-import AeroRecord, { belongsTo } from "../../lib/AeroRecord"
+import { belongsTo } from "../../lib/AeroRecord"
 import BelongsTo from "../../lib/Relations/BelongsTo"
 import BaseDummyModel from "../BaseDummyModel"
 import { ConstructorArgs } from "../../lib/types"
+import BaseUser from "../BaseUser"
 
-class BaseRecord<TRecord extends BaseRecord<TRecord>> extends AeroRecord.Base<TRecord> {}
-
-class User extends BaseRecord<User> {
-	id!: string
-	createdAt?: Date
-	updatedAt?: Date
-}
+class User extends BaseUser {}
 
 class DummyModel<TRecord extends DummyModel<TRecord>> extends BaseDummyModel<TRecord>{
 	userId?: string
@@ -95,7 +90,7 @@ describe("AeroRecord", () => {
 						})
 
 						it("returns the related model", async () => {
-							expect(await dummyModel.user).to.deep.eq(user)
+							expect((await dummyModel.user)?.toObject()).to.deep.eq(user.toObject())
 						})
 					})
 
@@ -136,7 +131,7 @@ describe("AeroRecord", () => {
 				})
 
 				it("sets the relation on the model", async () => {
-					expect(await dummyModel.user).to.deep.eq(user)
+					expect((await dummyModel.user)?.toObject()).to.deep.eq(user.toObject())
 				})
 			})
 		})

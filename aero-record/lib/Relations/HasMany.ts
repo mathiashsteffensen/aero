@@ -1,12 +1,31 @@
-import Relation from "."
+import { Options, BaseRelation, DependenceType } from "."
 import { BaseInterface } from "../types"
+import BasicObject from "@aero/aero-support/dist/typings/BasicObject"
+import Base from "../Base"
+import DependencyHandler from "./DependencyHandler"
 
 export default class HasMany<
   TForeignRecord extends BaseInterface
-  > extends Relation<
+  > extends BaseRelation<
   TForeignRecord,
   HasMany<TForeignRecord>
   > {
+	constructor(
+		attribute: string,
+		target: BasicObject,
+		Class: typeof Base,
+		options: Options<TForeignRecord, HasMany<TForeignRecord>> = {},
+	) {
+		super("HasMany", attribute, target, Class, options)
+	}
+
+	static attachDependencyHandler(
+		Class: typeof Base,
+		dependencyType: DependenceType,
+		attribute: string,
+	) {
+		Class.after("destroy", DependencyHandler(dependencyType, Class, "HasMany", attribute))
+	}
 
 	query = this.queryByForeignKey
 	get where() {

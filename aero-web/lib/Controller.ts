@@ -9,7 +9,7 @@ import Parameters from "./Parameters"
 import { ViewEngine, Public } from "./types"
 import RouteBuilder from "./RouteBuilder"
 import Cookie from "./Cookie"
-
+import { RouteString } from "./RouteHelpers"
 
 export type ControllerConstructor = {
 	new(
@@ -41,7 +41,7 @@ export default class Controller extends AeroSupport.BasicObject {
 	static callHooks<TController extends Controller>(type: "before" | "after", instance: TController) {
 		return Hooks.callHooks(instance)(type, "action")
 	}
-	
+
 	constructor(
 		public controllerName: string,
 		public processingAction: string,
@@ -84,6 +84,10 @@ export default class Controller extends AeroSupport.BasicObject {
 			...this.viewLocals,
 			...data,
 		})
+	}
+
+	isCurrentPage = (path: Public<RouteString>) => {
+		return this.req.url === path.path
 	}
 
 	redirectTo(url: string, code = 303) {

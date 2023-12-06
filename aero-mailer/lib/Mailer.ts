@@ -22,13 +22,13 @@ export default class Mailer {
 					template,
 			)
 			// Returning undefined will be caught by the Proxy and return a Mail instance instead
-			// So force type-checking to return a Mail instance
+			// So force it to be typed as such
 			: undefined as unknown as Mail
 	}
 
 	constructor() {
 		return new Proxy(this, {
-			get(target: Mailer, propertyKey: keyof Mailer): any {
+			get(target: Mailer, propertyKey: keyof Mailer): unknown {
 				const property = target[propertyKey] as unknown
 
 				if (typeof property !== "function") {

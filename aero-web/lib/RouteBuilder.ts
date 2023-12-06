@@ -107,10 +107,14 @@ export default class RouteBuilder {
 		}, this.#scope)
 	}
 
+	root(spec: RouteSpecification) {
+		this.get("/", spec, { as: this.#scope ? `${this.#scope}_` : "" + "root" })
+	}
+
 	/**
 	 * Registers an application resource
 	 */
-	resource(resourceName: string, options: RouteOptions & ResourceOptions = {}) {
+	resource(resourceName: string, options: RouteOptions & ResourceOptions = {}, routeCallback?: (r: RouteBuilder) => void) {
 		const controllerNameSpace = this.#scope
 			?
 			this.#scope.startsWith("/")
@@ -143,19 +147,25 @@ export default class RouteBuilder {
 		}
 
 		// Viewing a resource
-		this.get(`${resourceName}/:id`, `${controllerName}#show`, { as })
+		if (!options.except?.includes("show")) {
+			this.get(`${resourceName}/:id`, `${controllerName}#show`, { as })
+		}
+
+		if (routeCallback) {
+			this.namespace(resourceName, routeCallback)
+		}
 	}
 
 	/**
 	 * Registers an application resource
 	 */
-	resources(resourceName: string, options: RouteOptions & ResourceOptions = {}) {
+	resources(resourceName: string, options: RouteOptions & ResourceOptions = {}, routeCallback?: (r: RouteBuilder) => void) {
 		const clonedOptions = Object.assign({}, options)
 
 		clonedOptions.as ||= pluralize.singular(resourceName)
 
 		// Register the singular resource routes
-		this.resource(resourceName, clonedOptions)
+		this.resource(resourceName, clonedOptions, routeCallback)
 
 		// Register the index route
 		if (!options.except?.includes("index")) {

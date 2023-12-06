@@ -21,8 +21,8 @@ export default class BasicObject extends Object {
 		return Object.assign({}, this) as T
 	}
 
-	class<T extends typeof BasicObject>() {
-		return this.constructor as T
+	class<T>() {
+		return this.constructor as unknown as T
 	}
 
 	walkPrototypeChain<TClass, ReturnType>(cb: (klass: TClass) => ReturnType) {

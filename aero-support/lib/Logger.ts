@@ -20,16 +20,18 @@ const defaultLogLevel = NODE_ENV === "test"
 		? "debug"
 		: "info"
 
+type LogFunction = (obj?: unknown, msg?: string, ...args: unknown[]) => void
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default class Logger implements pino.BaseLogger {
 	level: pino.Level | "silent" = defaultLogLevel
 
-	silent: pino.LogFn
-	trace: pino.LogFn
-	debug: pino.LogFn
-	info: pino.LogFn
-	warn: pino.LogFn
-	error: pino.LogFn
+	silent: LogFunction
+	trace: LogFunction
+	debug: LogFunction
+	info: LogFunction
+	warn: LogFunction
+	error: LogFunction
 
 	constructor(private instance = parent) {
 		this.silent = this.pinoDup("silent")
@@ -56,7 +58,7 @@ export default class Logger implements pino.BaseLogger {
 	}
 
 	private pinoDup(level: pino.Level | "silent") {
-		return (obj?: unknown, msg?: string, ...args: any[]) => {
+		return (obj?: unknown, msg?: string, ...args: unknown[]) => {
 			if (!obj) {
 				this.level = level
 				return

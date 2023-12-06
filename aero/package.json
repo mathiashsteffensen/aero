@@ -9,9 +9,11 @@
   "types": "dist/typings/lib/Aero.d.ts",
   "bin": "bin/aero.js",
   "dependencies": {
+    "@aero/aero-job": "../aero-job",
     "@aero/aero-mailer": "../aero-mailer",
+    "@aero/aero-record": "../aero-record",
     "@aero/aero-support": "../aero-support",
-    "@aero/aero-web": "../aero-web/",
+    "@aero/aero-web": "../aero-web",
     "@types/i18n": "^0.13.2",
     "commander": "^8.3.0",
     "cuid": "^2.1.8",
@@ -21,7 +23,7 @@
     "esbuild-sass-plugin": "^1.8.2",
     "fastify": "^3.25.1",
     "fastify-static": "^4.5.0",
-    "i18n": "git://github.com/mathiashsteffensen/i18n-node#custom-parser",
+    "i18n": "^0.14.1",
     "jake": "^10.8.2",
     "middie": "^5.4.0",
     "pino": "^7.6.4",
@@ -30,8 +32,6 @@
     "postcss-modules": "^4.2.2"
   },
   "devDependencies": {
-    "@aero/aero-job": "../aero-job",
-    "@aero/aero-record": "../aero-record/",
     "@types/connect": "^3.4.35",
     "@types/ejs": "^3.1.0",
     "@types/jake": "^0.0.33",
@@ -50,10 +50,10 @@
   },
   "packageManager": "yarn@3.1.1",
   "resolutions": {
-    "@aero/aero-web": "portal:/home/mathias/code/aero/aero-web",
-    "@aero/aero-record": "portal:/home/mathias/code/aero/aero-record",
-    "@aero/aero-support": "portal:/home/mathias/code/aero/aero-support",
-    "@aero/aero-job": "portal:/home/mathias/code/aero/aero-job",
-    "@aero/aero-mailer": "portal:/home/mathias/code/aero/aero-mailer"
+    "@aero/aero-web": "portal:/home/mathias/Desktop/code/aero/aero-web",
+    "@aero/aero-record": "portal:/home/mathias/Desktop/code/aero/aero-record",
+    "@aero/aero-support": "portal:/home/mathias/Desktop/code/aero/aero-support",
+    "@aero/aero-job": "portal:/home/mathias/Desktop/code/aero/aero-job",
+    "@aero/aero-mailer": "portal:/home/mathias/Desktop/code/aero/aero-mailer"
   }
 }

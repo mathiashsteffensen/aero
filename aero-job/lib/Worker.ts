@@ -40,6 +40,7 @@ export default class Worker {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async perform(_args: unknown) {
 		throw new Error(`${this.constructor.name}#perform called without implementing the method`)
 	}

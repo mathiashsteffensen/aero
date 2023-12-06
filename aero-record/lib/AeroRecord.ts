@@ -1,4 +1,4 @@
-import pino, { BaseLogger } from "pino"
+import AeroSupport from "@aero/aero-support"
 
 import Base from "./Base"
 import Connection from "./Connection"
@@ -18,14 +18,7 @@ export default abstract class AeroRecord {
 	static Query = Query
 
 	static connection: Connection
-	static logger: BaseLogger = pino({
-		transport: {
-			target: "pino-pretty",
-			options: {
-				colorize: true,
-			},
-		},
-	})
+	static logger = new AeroSupport.Logger()
 
 	static establishConnection(connectionName: string, configFile = "config/database.yml") {
 		if (!this.connection) {

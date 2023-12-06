@@ -5,9 +5,9 @@ __metadata:
   version: 5
   cacheKey: 8
 
-"@aero/aero-support@portal:/home/mathias/code/aero/aero-support::locator=%40aero%2Faero-web%40workspace%3A.":
+"@aero/aero-support@portal:/home/mathias/Desktop/code/aero/aero-support::locator=%40aero%2Faero-web%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@aero/aero-support@portal:/home/mathias/code/aero/aero-support::locator=%40aero%2Faero-web%40workspace%3A."
+  resolution: "@aero/aero-support@portal:/home/mathias/Desktop/code/aero/aero-support::locator=%40aero%2Faero-web%40workspace%3A."
   dependencies:
     pino: ^7.6.4
   languageName: node

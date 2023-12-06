@@ -1,12 +1,23 @@
-import Relation from "."
+import { BaseRelation, Options } from "."
 import { BaseInterface } from "../types"
+import Base from "../Base"
+import BasicObject from "@aero/aero-support/dist/typings/BasicObject"
 
 export default class HasOne<
   TForeignRecord extends BaseInterface
-> extends Relation<
+> extends BaseRelation<
   TForeignRecord,
   HasOne<TForeignRecord>
 > {
+
+	constructor(
+		attribute: string,
+		target: BasicObject,
+		Class: typeof Base,
+		options: Options<TForeignRecord, HasOne<TForeignRecord>> = {},
+	) {
+		super("HasOne", attribute, target, Class, options)
+	}
 
 	find() {
 		return this.findByForeignKey()

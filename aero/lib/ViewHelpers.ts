@@ -1,3 +1,6 @@
+import { SetCacheOptions } from "@aero/aero-support/dist/typings/interfaces"
+import Aero from "./Aero"
+
 export default class ViewHelpers {
 	assetManifest: Record<
     string,
@@ -76,4 +79,12 @@ export default class ViewHelpers {
 			</button>
 		</form>	
 	`)
+
+	cache = (key: string, callback: () => string | Promise<string>, options: SetCacheOptions = {}) => {
+		return Aero.cache.fetch(
+			key,
+			callback as () => Promise<string>,
+			options,
+		)
+	}
 }

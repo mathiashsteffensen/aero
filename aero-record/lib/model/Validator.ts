@@ -63,7 +63,7 @@ export default class Validator<TRecord extends Base<TRecord>> {
 	}
 
 	#validatePresent(instance: TRecord) {
-		if (!instance[this.property]) {
+		if (instance[this.property] === undefined || instance[this.property] === null) {
 			return new RecordInvalid(`Missing required property ${this.property}`)
 		} else {
 			return undefined

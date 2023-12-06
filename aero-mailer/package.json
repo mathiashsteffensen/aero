@@ -29,7 +29,7 @@
     "typescript": "^4.5.4"
   },
   "resolutions": {
-    "@aero/aero-support": "portal:/home/mathias/code/aero/aero-support"
+    "@aero/aero-support": "portal:/home/mathias/Desktop/code/aero/aero-support"
   },
   "packageManager": "yarn@3.1.1"
 }

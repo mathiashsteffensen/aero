@@ -33,11 +33,12 @@
     "typescript": "^4.5.4"
   },
   "resolutions": {
-    "@aero/aero": "portal:/home/mathias/code/aero/aero",
-    "@aero/aero-web": "portal:/home/mathias/code/aero/aero-web",
-    "@aero/aero-record": "portal:/home/mathias/code/aero/aero-record",
-    "@aero/aero-mailer": "portal:/home/mathias/code/aero/aero-mailer",
-    "@aero/aero-support": "portal:/home/mathias/code/aero/aero-support"
+    "@aero/aero": "portal:/home/mathias/Desktop/code/aero/aero",
+    "@aero/aero-web": "portal:/home/mathias/Desktop/code/aero/aero-web",
+    "@aero/aero-record": "portal:/home/mathias/Desktop/code/aero/aero-record",
+    "@aero/aero-mailer": "portal:/home/mathias/Desktop/code/aero/aero-mailer",
+    "@aero/aero-support": "portal:/home/mathias/Desktop/code/aero/aero-support",
+    "@aero/aero-job": "portal:/home/mathias/Desktop/code/aero/aero-job"
   },
   "packageManager": "yarn@3.1.1"
 }

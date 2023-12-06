@@ -11,9 +11,8 @@ class ViewEngine {
 		return compiled
 	}
 
-	async load(dir: string) {
-		console.log(dir)
-	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+	async load(_dir: string) {}
 }
 
 AeroMailer.viewEngine = new ViewEngine()

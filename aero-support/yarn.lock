@@ -18,6 +18,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.6.0
     "@typescript-eslint/parser": ^5.6.0
     chai: ^4.3.4
+    cuid: ^2.1.8
     eslint: ^8.6.0
     eslint-plugin-tsdoc: ^0.2.14
     ioredis: ^4.28.3
@@ -802,6 +803,13 @@ __metadata:
     shebang-command: ^2.0.0
     which: ^2.0.1
   checksum: 671cc7c7288c3a8406f3c69a3ae2fc85555c04169e9d611def9a675635472614f1c0ed0ef80955d5b6d4e724f6ced67f0ad1bb006c2ea643488fcfef994d7f52
+  languageName: node
+  linkType: hard
+
+"cuid@npm:^2.1.8":
+  version: 2.1.8
+  resolution: "cuid@npm:2.1.8"
+  checksum: 12b85b3f5150a6f0b9e4f345c8d98299d74647419151751fa1132f6702fe2b5388ceceb1c9b49bad7cab1b3ac033c7cedea8ffc034930f90005b8a4345025288
   languageName: node
   linkType: hard
 

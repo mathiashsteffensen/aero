@@ -10,6 +10,7 @@ export default class ValidationErrors<TRecord extends BaseInterface> extends Map
 	}
 
 	any() {
+		/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 		for (const [_key, errors] of this) {
 			if (errors.length !== 0) return true
 		}

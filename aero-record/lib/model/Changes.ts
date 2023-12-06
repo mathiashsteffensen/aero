@@ -1,5 +1,6 @@
 import { BaseInterface, ModelAttributes } from "../types"
-import Relation from "../Relations"
+import { BaseRelation } from "../Relations"
+import Base from "../Base"
 
 export default class Changes<TRecord extends BaseInterface> {
 	/**
@@ -8,7 +9,8 @@ export default class Changes<TRecord extends BaseInterface> {
 	static proxifyModel<TRecord extends BaseInterface>(model: TRecord) {
 		return new Proxy(model, {
 			set(target, property, value: unknown) {
-				target
+				/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+				(target as unknown as Base<any>)
 					.changes
 					.recordChanges(
 						property as string,
@@ -46,7 +48,7 @@ export default class Changes<TRecord extends BaseInterface> {
 		oldValue: TRecord[ModelAttributes<TRecord>],
 		newValue: TRecord[ModelAttributes<TRecord>],
 	) {
-		if (newValue instanceof Relation) return
+		if (newValue instanceof BaseRelation) return
 
 		if (newValue === oldValue) {
 			return
@@ -59,12 +61,12 @@ export default class Changes<TRecord extends BaseInterface> {
 			return
 		}
 
-		if (this.#originalValues[attribute] !== newValue) {
-			this.#state.set(attribute, [oldValue, newValue])
+		if (this.#originalValues[attribute] === newValue) {
+			this.#state.delete(attribute)
 			return
 		}
 
-		this.#state.delete(attribute)
+		this.#state.set(attribute, [oldValue, newValue])
 	}
 
 	includes(attribute: ModelAttributes<TRecord>) {

@@ -1,7 +1,7 @@
 import BasicObject from "@aero/aero-support/lib/BasicObject"
 
 import Base from "../Base"
-import Relation, { Options } from "./index"
+import { Options, BaseRelation } from "./index"
 import pluralize from "pluralize"
 import { BaseInterface } from "../types"
 
@@ -11,13 +11,14 @@ const DEFAULT_OPTIONS = (Class: typeof Base) => ({
 
 export default class BelongsTo<
   TForeignRecord extends BaseInterface,
-> extends Relation<TForeignRecord, BelongsTo<TForeignRecord>> {
+> extends BaseRelation<TForeignRecord, BelongsTo<TForeignRecord>> {
 	constructor(
+		attribute: string,
 		target: BasicObject,
 		Class: typeof Base,
 		options: Options<TForeignRecord, BelongsTo<TForeignRecord>> = {},
 	) {
-		super(target, Class, options)
+		super("BelongsTo", attribute, target, Class, options)
 
 		this.options = {
 			...this.options,

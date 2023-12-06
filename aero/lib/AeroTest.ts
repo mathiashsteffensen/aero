@@ -78,7 +78,7 @@ export default class AeroTest {
 		}))
 	}
 
-	async post(path: string, data: InjectOptions["payload"] = {}, headers: Record<string, string> = {}) {
+	async post(path: string, data: InjectOptions["payload"] = {}, headers: Record<string, string> = {}): Promise<TestResponse> {
 		return (await aero)!.application.server.fastify.inject({
 			method: "POST",
 			payload: data,
@@ -87,7 +87,7 @@ export default class AeroTest {
 		})
 	}
 
-	async get(path: string, headers: Record<string, string> = {}) {
+	async get(path: string, headers: Record<string, string> = {}): Promise<TestResponse> {
 		return (await aero)!.application.server.fastify.inject({
 			method: "GET",
 			path,

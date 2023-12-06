@@ -23,6 +23,7 @@ describe("Routes", () => {
 			server,
 			{
 				async render() { return "" },
+				// eslint-disable-next-line no-console
 				async load(d: string) { console.log(d) },
 			},
 			{},
@@ -113,6 +114,7 @@ describe("Routes", () => {
 					r.namespace("dashboard", (r) => {
 						r.namespace("auth", (r) => {
 							r.post("sign-up", () => {
+								// eslint-disable-next-line no-console
 								console.log("someone is signing up")
 							})
 						})

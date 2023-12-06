@@ -7,24 +7,20 @@ import AeroRecord from "./AeroRecord"
 import Base from "./Base"
 import * as Helpers from "./Helpers"
 
-import { ConstructorArgs } from "./types"
-import { BaseInterface } from "./types/BaseInterface"
+import { ConstructorArgs, BaseInterface } from "./types"
 
 export type QueryParams<TRecord extends BaseInterface> = ConstructorArgs<TRecord> | string;
 
 export default class Query<TRecord extends BaseInterface> {
-	private state: Knex.QueryBuilder<TRecord>
-
 	constructor(
 		private RecordClass: typeof Base,
 		tableName: string,
+		private state: Knex.QueryBuilder<TRecord> = AeroRecord.connection.knex<TRecord>(tableName),
 	) {
 
 		if (!AeroRecord.connection) {
 			throw new Error("Can't initialize query before establishing connection to database")
 		}
-
-		this.state = AeroRecord.connection.knex<TRecord>(tableName)
 	}
 
 	/**
@@ -47,6 +43,17 @@ export default class Query<TRecord extends BaseInterface> {
 	where = this.knexDup<QueryParams<TRecord>>("where")
 	whereNot = this.knexDup<QueryParams<TRecord>>("whereNot")
 	returning = this.knexDup<string>("returning")
+	select(...columns: Array<string>) {
+		this.state = this.state.select(...columns)
+
+		return this
+	}
+
+	async exists(): Promise<boolean> {
+		const result = await this.select(this.RecordClass.primaryIdentifier).first()
+
+		return !!result
+	}
 
 	async first(): Promise<TRecord | undefined> {
 		const row = await this.state.first()

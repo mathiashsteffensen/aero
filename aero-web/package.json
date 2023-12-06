@@ -11,6 +11,7 @@
     "ejs": "^3.1.6"
   },
   "dependencies": {
+    "@aero/aero-support": "../aero-support",
     "ajv": "^8.8.2",
     "cuid": "^2.1.8",
     "fastify": "^3.25.1",
@@ -24,7 +25,6 @@
     "schema-validator": "^3.3.1"
   },
   "devDependencies": {
-    "@aero/aero-support": "../aero-support",
     "@types/ejs": "^3.1.0",
     "@types/jake": "^0.0.33",
     "@types/mocha": "^9.0.0",
@@ -43,6 +43,6 @@
   },
   "packageManager": "yarn@3.1.1",
   "resolutions": {
-    "@aero/aero-support": "portal:/home/mathias/code/aero/aero-support"
+    "@aero/aero-support": "portal:/home/mathias/Desktop/code/aero/aero-support"
   }
 }

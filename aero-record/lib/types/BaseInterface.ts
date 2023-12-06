@@ -3,8 +3,10 @@ import { Knex } from "knex"
 import BasicObject from "@aero/aero-support/lib/BasicObject"
 
 import { ConstructorArgs, Public, SaveOptions } from "."
-import { Changes, ValidationErrors } from "../model"
 import { HookType } from "../model/Hooks"
+import TransactionManager from "../model/TransactionManager"
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface BaseInterface extends BasicObject {
   /* BasicObject types */
@@ -12,11 +14,12 @@ export interface BaseInterface extends BasicObject {
 
   /* Query methods */
   primaryIdentifier: string
-  save: (options: SaveOptions) => Promise<boolean>
-  insert: (options: SaveOptions) => Promise<boolean>
-  update: (options: SaveOptions) => Promise<boolean>
+  save: (options?: SaveOptions) => Promise<boolean>
+  insert: (options?: SaveOptions) => Promise<boolean>
+  update: (options?: SaveOptions) => Promise<boolean>
   reload: () => Promise<this>
   destroy: () => Promise<void>
+  transaction: Public<TransactionManager>
 
   /* Modifying the object */
   fromRow: (row: Awaited<Knex.ResolveTableType<any>>) => void
@@ -27,8 +30,6 @@ export interface BaseInterface extends BasicObject {
 
   /* State */
   validate: (throwOnError: boolean) => Promise<void>
-  changes: Public<Changes<any>>
-  errors: ValidationErrors<any>
   isPersisted: boolean
   isNewRecord: boolean
   callHooks: (timing: "before" | "after", type: HookType) => Promise<void>

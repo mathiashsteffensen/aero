@@ -10,7 +10,7 @@ import * as Errors from "./Errors"
 import * as Helpers from "./Helpers"
 import { Changes, Hooks, ValidationErrors, Validator } from "./model"
 import Query from "./Query"
-import Relation from "./Relations"
+import { BaseRelation } from "./Relations"
 
 import {
 	ConstructorArgs,
@@ -23,6 +23,7 @@ import {
 } from "./types"
 import { HookType } from "./model/Hooks"
 import { HookAction, HookOptions } from "@aero/aero-support/dist/typings/Hooks"
+import TransactionManager from "./model/TransactionManager"
 
 const privateAttributes = {
 	isPersisted: Symbol("isPersisted"),
@@ -98,7 +99,7 @@ export default class Base<TRecord extends BaseInterface> extends AeroSupport.Bas
 		methods: HookAction<TRecord>["action"] | Array<HookAction<TRecord>["action"]>,
 		options: HookOptions<TRecord> = {},
 	) {
-		return Hooks.before(this.tableName)(type, methods as unknown as keyof Base<any>, options as HookOptions<Record<string, unknown>>)
+		return Hooks.before(this.tableName)(type, methods as keyof BaseInterface, options as HookOptions<Record<string, unknown>>)
 	}
 
 	static after<TRecord extends BaseInterface>(
@@ -106,27 +107,10 @@ export default class Base<TRecord extends BaseInterface> extends AeroSupport.Bas
 		methods: HookAction<TRecord>["action"] | Array<HookAction<TRecord>["action"]>,
 		options: HookOptions<TRecord> = {},
 	) {
-		return Hooks.after(this.tableName)(type, methods as unknown as keyof Base<any>, options as HookOptions<Record<string, unknown>>)
+		return Hooks.after(this.tableName)(type, methods as keyof BaseInterface, options as HookOptions<Record<string, unknown>>)
 	}
 
 	static validators: Array<Validator<DefaultBase>> = []
-
-	/**
-	 * @internal
-	 */
-	static get inheritedModels() {
-		const models: Array<typeof Base> = []
-
-		let currentModel = Object.getPrototypeOf(this.prototype.constructor)
-		while (currentModel) {
-			if (currentModel === Base) break
-			models.push(currentModel as typeof Base)
-
-			currentModel = Object.getPrototypeOf(currentModel)
-		}
-
-		return models
-	}
 
 	/**
 	 * Instantiate a new query for this model
@@ -134,14 +118,61 @@ export default class Base<TRecord extends BaseInterface> extends AeroSupport.Bas
 	 * @internal
 	 */
 	get query() {
-		return (this.class<typeof Base>()).query()
+		return (this.class<typeof Base>()).query(this.transaction.transactionOrConnection)
 	}
 
 	/**
 	 * Instantiate a new query for this model
 	 */
-	static query<TRecord extends BaseInterface>(): Query<TRecord> {
-		return new Query(this, this.tableName)
+	static query<TRecord extends BaseInterface>(connection?: Knex): Query<TRecord> {
+		return new Query(this, this.tableName, connection?.(this.tableName))
+	}
+
+	static async transaction<
+		TRecord extends BaseInterface, TReturns
+		>(
+		callback: (args: { query: Query<TRecord> }) => (Promise<TReturns> | TReturns),
+	): Promise<TReturns> {
+		const tableName = this.tableName
+
+		const transaction = await AeroRecord.connection.knex.transaction()
+
+		let result: TReturns
+
+		try {
+			result = await callback({
+				get query() {
+					return new Query(this, tableName, transaction(tableName))
+				},
+			})
+
+			await transaction.commit()
+
+			return result
+		} catch (e) {
+			await transaction.rollback()
+			throw e
+		}
+	}
+
+	transaction = new TransactionManager()
+	async transact<TReturns>(callback: () => Promise<TReturns>): Promise<TReturns | undefined> {
+		if (this.transaction.isTransacting) {
+			return await callback()
+		}
+
+		await this.transaction.begin()
+
+		try {
+			const result = await callback()
+
+			await this.transaction.commit()
+
+			return result
+		} catch (e) {
+			await this.transaction.rollback()
+			throw e
+		}
 	}
 
 	static where<TRecord extends BaseInterface>(params: ConstructorArgs<TRecord>): Query<TRecord> {
@@ -236,7 +267,7 @@ export default class Base<TRecord extends BaseInterface> extends AeroSupport.Bas
 		for (const attribute in this) {
 			const value = this[attribute]
 
-			if (value instanceof Relation) continue
+			if (value instanceof BaseRelation) continue
 
 			obj[attribute] = this[attribute]
 		}
@@ -400,8 +431,14 @@ export default class Base<TRecord extends BaseInterface> extends AeroSupport.Bas
 	}
 
 	async destroy() {
-		await this.whereThis.destroy()
-		this.__set__(privateAttributes.isPersisted, false)
+		return this.transact(async () => {
+			await this.callHooks("before", "destroy")
+
+			await this.whereThis.destroy()
+			this.__set__(privateAttributes.isPersisted, false)
+
+			await this.callHooks("after", "destroy")
+		})
 	}
 
 	get changes(): Public<Changes<TRecord>> {

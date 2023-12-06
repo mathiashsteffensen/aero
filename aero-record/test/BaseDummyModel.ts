@@ -1,3 +1,5 @@
+import cuid from "cuid"
+
 import AeroRecord, { hasEncryptedPassword, beforeCreate } from "../lib/AeroRecord"
 
 export default class BaseDummyModel<TRecord extends BaseDummyModel<TRecord>> extends AeroRecord.Base<TRecord> {
@@ -19,7 +21,7 @@ export default class BaseDummyModel<TRecord extends BaseDummyModel<TRecord>> ext
 	calledSetId = 0
 	@beforeCreate()
 	async setId() {
-		this.id = "an-id"
+		this.id = cuid()
 		this.calledSetId += 1
 		await this.sleep(10)
 

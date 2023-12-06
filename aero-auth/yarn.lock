@@ -33,29 +33,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@aero/aero-job@file:../aero-job::locator=%40aero%2Faero-auth%40workspace%3A.":
-  version: 1.0.0
-  resolution: "@aero/aero-job@file:../aero-job#../aero-job::hash=a42af7&locator=%40aero%2Faero-auth%40workspace%3A."
+"@aero/aero-job@portal:/home/mathias/Desktop/code/aero/aero-job::locator=%40aero%2Faero-auth%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@aero/aero-job@portal:/home/mathias/Desktop/code/aero/aero-job::locator=%40aero%2Faero-auth%40workspace%3A."
   dependencies:
     bullmq: ^1.64.0
     cuid: ^2.1.8
     pino: ^7.6.4
-  checksum: 81d58c1e8a41511a755f44153a92bb6d025c0adea59bd89912f050bbea0a791dd602eca088585590004e89ecf02b2c11d1fda5d45f773d538c0ffa05eaa1941c
   languageName: node
-  linkType: hard
+  linkType: soft
 
-"@aero/aero-mailer@portal:/home/mathias/code/aero/aero-mailer::locator=%40aero%2Faero-auth%40workspace%3A.":
+"@aero/aero-mailer@portal:/home/mathias/Desktop/code/aero/aero-mailer::locator=%40aero%2Faero-auth%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@aero/aero-mailer@portal:/home/mathias/code/aero/aero-mailer::locator=%40aero%2Faero-auth%40workspace%3A."
+  resolution: "@aero/aero-mailer@portal:/home/mathias/Desktop/code/aero/aero-mailer::locator=%40aero%2Faero-auth%40workspace%3A."
   dependencies:
     juice: ^8.0.0
     nodemailer: ^6.7.2
   languageName: node
   linkType: soft
 
-"@aero/aero-record@portal:/home/mathias/code/aero/aero-record::locator=%40aero%2Faero-auth%40workspace%3A.":
+"@aero/aero-record@portal:/home/mathias/Desktop/code/aero/aero-record::locator=%40aero%2Faero-auth%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@aero/aero-record@portal:/home/mathias/code/aero/aero-record::locator=%40aero%2Faero-auth%40workspace%3A."
+  resolution: "@aero/aero-record@portal:/home/mathias/Desktop/code/aero/aero-record::locator=%40aero%2Faero-auth%40workspace%3A."
   dependencies:
     bcrypt: ^5.0.1
     commander: ^8.3.0
@@ -70,18 +69,19 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@aero/aero-support@portal:/home/mathias/code/aero/aero-support::locator=%40aero%2Faero-auth%40workspace%3A.":
+"@aero/aero-support@portal:/home/mathias/Desktop/code/aero/aero-support::locator=%40aero%2Faero-auth%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@aero/aero-support@portal:/home/mathias/code/aero/aero-support::locator=%40aero%2Faero-auth%40workspace%3A."
+  resolution: "@aero/aero-support@portal:/home/mathias/Desktop/code/aero/aero-support::locator=%40aero%2Faero-auth%40workspace%3A."
   dependencies:
     pino: ^7.6.4
   languageName: node
   linkType: soft
 
-"@aero/aero-web@portal:/home/mathias/code/aero/aero-web::locator=%40aero%2Faero-auth%40workspace%3A.":
+"@aero/aero-web@portal:/home/mathias/Desktop/code/aero/aero-web::locator=%40aero%2Faero-auth%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@aero/aero-web@portal:/home/mathias/code/aero/aero-web::locator=%40aero%2Faero-auth%40workspace%3A."
+  resolution: "@aero/aero-web@portal:/home/mathias/Desktop/code/aero/aero-web::locator=%40aero%2Faero-auth%40workspace%3A."
   dependencies:
+    "@aero/aero-support": ../aero-support
     ajv: ^8.8.2
     cuid: ^2.1.8
     ejs: ^3.1.6
@@ -100,13 +100,15 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@aero/aero@portal:/home/mathias/code/aero/aero::locator=%40aero%2Faero-auth%40workspace%3A.":
+"@aero/aero@portal:/home/mathias/Desktop/code/aero/aero::locator=%40aero%2Faero-auth%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@aero/aero@portal:/home/mathias/code/aero/aero::locator=%40aero%2Faero-auth%40workspace%3A."
+  resolution: "@aero/aero@portal:/home/mathias/Desktop/code/aero/aero::locator=%40aero%2Faero-auth%40workspace%3A."
   dependencies:
+    "@aero/aero-job": ../aero-job
     "@aero/aero-mailer": ../aero-mailer
+    "@aero/aero-record": ../aero-record
     "@aero/aero-support": ../aero-support
-    "@aero/aero-web": ../aero-web/
+    "@aero/aero-web": ../aero-web
     "@types/i18n": ^0.13.2
     commander: ^8.3.0
     cuid: ^2.1.8
@@ -116,7 +118,7 @@ __metadata:
     esbuild-sass-plugin: ^1.8.2
     fastify: ^3.25.1
     fastify-static: ^4.5.0
-    i18n: "git://github.com/mathiashsteffensen/i18n-node#custom-parser"
+    i18n: ^0.14.1
     jake: ^10.8.2
     middie: ^5.4.0
     pino: ^7.6.4
@@ -2713,9 +2715,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18n@git://github.com/mathiashsteffensen/i18n-node#custom-parser":
-  version: 0.14.0
-  resolution: "i18n@git://github.com/mathiashsteffensen/i18n-node#commit=e11066228c0cc49a83ea0ad29a86d3a70866c3b2"
+"i18n@npm:^0.14.1":
+  version: 0.14.1
+  resolution: "i18n@npm:0.14.1"
   dependencies:
     "@messageformat/core": ^3.0.0
     debug: ^4.3.3
@@ -2723,7 +2725,7 @@ __metadata:
     make-plural: ^7.0.0
     math-interval-parser: ^2.0.1
     mustache: ^4.2.0
-  checksum: 5c3bbd6e04bed3f8a6d7a8a171ecd4db7d006c812541208b6eec147b7ba4a90e41a753c3b5587556d2804f2a2297199f6dda6dd6ad4d47cbdb43f55700d147e1
+  checksum: c62fba63cb5582ec4bcf1214b7048bcce208de9af5da2a89c6179052356ae12b636c3b02cb1e53fef9adb9e49c28158a43e7a7e8633e5b32f988c21149f04c62
   languageName: node
   linkType: hard
 
